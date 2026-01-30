@@ -453,9 +453,19 @@ window.createGitLabIssue = async (projectName) => {
     if (confirm(`Criar issue de deploy no GitLab para "${projectName} - ${info.version}"?`)) {
         try {
             DOM.showLoading(true);
-            await GitLabService.createIssue(token, data);
+            let result = await GitLabService.createIssue(token, data);
+            
+            currentData.prs.forEach(pr => {
+                if (pr.project === projectName && pr.approved) {
+                    pr.gitlabIssueLink = result.web_url;
+                }
+            });
+
+            await API.savePRs(currentData, currentSha);
             DOM.showToast('Chamado criado com sucesso no GitLab!');
+            DOM.renderTable(currentData.prs, openEditModal);
         } catch (error) {
+            console.error(error);
             DOM.showToast('Erro ao criar chamado: ' + error.message, 'error');
         } finally {
             DOM.showLoading(false);

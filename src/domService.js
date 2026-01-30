@@ -136,7 +136,7 @@ function renderGroupedTable(data, containerId, onEdit, isApprovedTable = false) 
                     <div style="display: flex; gap: 0.8rem;">
                         ${pr.taskLink ? `<a href="${pr.taskLink}" target="_blank" class="link-icon" title="Link Task"><i data-lucide="external-link" style="width: 16px;"></i></a>` : ''}
                         ${pr.prLink ? `<a href="${pr.prLink}" target="_blank" class="link-icon" title="Link PR"><i data-lucide="git-pull-request" style="width: 16px;"></i></a>` : ''}
-                        ${pr.docLink ? `<a href="${pr.docLink}" target="_blank" class="link-icon" title="Docs"><i data-lucide="file-text" style="width: 16px;"></i></a>` : ''}
+                        ${pr.gitlabIssueLink ? `<a href="${pr.gitlabIssueLink}" target="_blank" class="link-icon" title="Issue GitLab" style="color: #FC6D26;"><i data-lucide="gitlab" style="width: 16px;"></i></a>` : ''}
                     </div>
                 </td>
                 <td>
