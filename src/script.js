@@ -406,7 +406,40 @@ window.requestVersion = async (projectName) => {
     }
 };
 
+window.confirmDeploy = async (projectName) => {
+    // Release to STG
+    if (confirm(`Confirmar liberação de "${projectName}" para ambiente de Teste (STG)?\nIsso moverá os PRs para a tabela de 'Versões em Teste'.`)) {
+        let changed = false;
+        
+        currentData.prs.forEach(pr => {
+             if (pr.project === projectName && pr.approved && pr.version && !pr.deployedToStg) {
+                 pr.deployedToStg = true;
+                 pr.deployedToStgAt = new Date().toISOString();
+                 changed = true;
+             }
+        });
+
+        if (changed) {
+            try {
+                DOM.showLoading(true);
+                const result = await API.savePRs(currentData, currentSha);
+                currentData = result.newData;
+                currentSha = result.newSha;
+                DOM.showToast('Versão liberada para Teste (STG)!');
+                DOM.renderTable(currentData.prs, openEditModal);
+            } catch (error) {
+                 DOM.showToast('Erro ao liberar versão: ' + error.message, 'error');
+            } finally {
+                DOM.showLoading(false);
+            }
+        } else {
+             DOM.showToast('Nenhum PR pendente para liberar neste grupo.', 'info');
+        }
+    }
+};
+
 window.createGitLabIssue = async (projectName) => {
+    // ... existing code ...
     const token = LocalStorage.getItem('gitlabToken');
     if (!token) {
         DOM.showToast('Configure o token do GitLab para continuar.', 'error');
@@ -437,6 +470,7 @@ window.createGitLabIssue = async (projectName) => {
             DOM.showLoading(true);
             let result = await GitLabService.createIssue(token, data);
             
+            // Only update link if successful
             currentData.prs.forEach(pr => {
                 if (pr.project === projectName && pr.approved) {
                     pr.gitlabIssueLink = result.web_url;
