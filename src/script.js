@@ -47,12 +47,27 @@ window.addEventListener('keydown', (e) => {
         closeAllModals();
     } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && key === 'k') {
         e.preventDefault();
+        const currentUser = LocalStorage.getItem('appUser');
         const adminUser = 'Samuel Santos';
-        EffectService.triggerGodMode();
-        
-        LocalStorage.setItem('appUser', adminUser);
-        updateUserDisplay(adminUser);
-        loadData();
+
+        if (currentUser === adminUser) {
+            const previousUser = LocalStorage.getItem('previousUser');
+            if (previousUser && previousUser !== adminUser) {
+                LocalStorage.setItem('appUser', previousUser);
+                updateUserDisplay(previousUser);
+                DOM.showToast(`Voltando para: ${previousUser}`);
+                loadData();
+            } else {
+                DOM.showToast('Nenhum usuário anterior encontrado.', 'error');
+            }
+        } else {
+            LocalStorage.setItem('previousUser', currentUser);
+            EffectService.triggerGodMode();
+            
+            LocalStorage.setItem('appUser', adminUser);
+            updateUserDisplay(adminUser);
+            loadData();
+        }
     }
 });
 
@@ -351,13 +366,20 @@ prForm.addEventListener('submit', async (e) => {
     }
 });
 
-window.saveGroupVersion = async (projectName) => {
+window.saveGroupVersion = async (projectName, batchId) => {
+    // Escaped name logic works for ID generation, but we rely on batchId for logic now
     const escapedName = projectName.replace(/\s/g, '');
+    const uniqueId = batchId || escapedName; // Fallback for safety
     
-    // Get Elements
-    const elVersion = document.getElementById(`v_ver_${escapedName}`);
-    const elPipeline = document.getElementById(`v_pipe_${escapedName}`);
-    const elRollback = document.getElementById(`v_roll_${escapedName}`);
+    // Get Elements using batchId if available to ensure uniqueness in DOM
+    const elVersion = document.getElementById(`v_ver_${uniqueId}`);
+    const elPipeline = document.getElementById(`v_pipe_${uniqueId}`);
+    const elRollback = document.getElementById(`v_roll_${uniqueId}`);
+
+    if (!elVersion || !elPipeline || !elRollback) {
+        DOM.showToast('Erro interno: Campos de formulário não encontrados.', 'error');
+        return;
+    }
 
     const version = elVersion.value.trim();
     const pipeline = elPipeline.value.trim();
@@ -403,11 +425,12 @@ window.saveGroupVersion = async (projectName) => {
         return;
     }
 
-    if (confirm(`Aplicar versão ${version} para todos os PRs aprovados de "${projectName}"?`)) {
+    if (confirm(`Aplicar versão ${version} para este lote de PRs de "${projectName}"?`)) {
         let changed = false;
         
         currentData.prs.forEach(pr => {
-            if (pr.project === projectName && pr.approved) {
+            // Target specific batch
+            if (pr.project === projectName && pr.approved && pr.versionBatchId === batchId) {
                 pr.version = version;
                 pr.pipelineLink = pipeline;
                 pr.rollback = rollback;
@@ -435,16 +458,20 @@ window.saveGroupVersion = async (projectName) => {
 };
 
 window.requestVersion = async (projectName) => {
-    const prs = currentData.prs.filter(p => p.project === projectName && p.approved);
+    // Only target backlog items (no version, no batch)
+    const prs = currentData.prs.filter(p => p.project === projectName && p.approved && !p.version && !p.versionBatchId);
     
     if (!prs.length) return;
 
-    if (confirm(`Solicitar versão para o projeto "${projectName}"?`)) {
+    if (confirm(`Solicitar versão para ${prs.length} PRs de "${projectName}"?`)) {
         let changed = false;
+        const newBatchId = Date.now().toString();
         
         currentData.prs.forEach(pr => {
-             if (pr.project === projectName && pr.approved && !pr.version && !pr.versionRequested) {
+             // Checking exact same conditions to be safe
+             if (pr.project === projectName && pr.approved && !pr.version && !pr.versionBatchId) {
                  pr.versionRequested = true;
+                 pr.versionBatchId = newBatchId;
                  changed = true;
              }
         });
