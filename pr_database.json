@@ -276,7 +276,9 @@
       "approvedBy": "Samuel Santos",
       "approvedAt": "2026-01-30T22:48:05.013Z",
       "needsCorrection": false,
-      "correctionReason": null
+      "correctionReason": null,
+      "versionRequested": true,
+      "versionBatchId": "ggGignE5kH"
     },
     {
       "id": "friiNYgg",
@@ -291,5 +293,5 @@
       "updatedAt": "2026-01-30T22:45:08.328Z"
     }
   ],
-  "last_updated": "2026-01-30T22:48:05.013Z"
+  "last_updated": "2026-01-30T22:52:44.115Z"
 }
