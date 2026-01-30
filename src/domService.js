@@ -1,11 +1,5 @@
-// domService.js
 import { getItem } from './localStorageService.js';
 
-/**
- * Exibe um toast de notificação
- * @param {string} message 
- * @param {string} type 'success' | 'error'
- */
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
     toast.textContent = message;
@@ -17,11 +11,6 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-/**
- * Renderiza a tabela de PRs
- * @param {Array} prs 
- * @param {Function} onEdit callback ao clicar em editar
- */
 function renderTable(prs, onEdit) {
     const openPrs = prs.filter(p => !p.approved);
     const approvedPrs = prs.filter(p => p.approved);
@@ -29,7 +18,6 @@ function renderTable(prs, onEdit) {
     renderGroupedTable(openPrs, 'openPrTableBody', onEdit, false);
     renderGroupedTable(approvedPrs, 'approvedPrTableBody', onEdit, true);
 
-    // Refresh icons
     if (window.lucide) {
         window.lucide.createIcons();
     }
@@ -46,7 +34,6 @@ function renderGroupedTable(data, containerId, onEdit, isApprovedTable = false) 
         return;
     }
 
-    // Group by Project
     const grouped = data.reduce((acc, pr) => {
         const project = pr.project || 'Outros';
         if (!acc[project]) acc[project] = [];
@@ -54,7 +41,6 @@ function renderGroupedTable(data, containerId, onEdit, isApprovedTable = false) 
         return acc;
     }, {});
 
-    // Sort Project Names
     const projectNames = Object.keys(grouped).sort();
 
     projectNames.forEach(projectName => {
@@ -70,21 +56,17 @@ function renderGroupedTable(data, containerId, onEdit, isApprovedTable = false) 
             const currentUser = getItem('appUser');
 
             if (isRequestingVersion) {
-                // ... (existing majority dev logic) ...
                 const devCounts = projectPrs.reduce((acc, pr) => {
                     acc[pr.dev] = (acc[pr.dev] || 0) + 1;
                     return acc;
                 }, {});
                 
-                // Find dev with max count
                 const majorityDev = Object.keys(devCounts).reduce((a, b) => devCounts[a] > devCounts[b] ? a : b);
     
                 if (currentUser === majorityDev) {
-                    // Red Warning Style for Majority Dev
                     headerStyle = 'background-color: rgba(218, 54, 51, 0.2); border-left: 4px solid #da3633; color: #ff7b72;';
                     headerContent += ` <span style="font-size:0.75rem; margin-left:10px; color:#ff7b72;">(Ação Necessária: Versão)</span>`;
                     
-                    // Inject Inputs
                     versionInputs = `
                         <div style="margin-top: 10px; display: flex; gap: 10px; align-items: center;">
                             <input type="text" placeholder="Versão (ex: 1.0.0)" class="version-input-group" id="v_ver_${projectName.replace(/\s/g, '')}" style="font-size:0.85rem; padding:0.4rem;">
@@ -94,11 +76,9 @@ function renderGroupedTable(data, containerId, onEdit, isApprovedTable = false) 
                         </div>
                     `;
                 } else {
-                    // Info for others
                     headerContent += ` <span style="font-size:0.75rem; margin-left:10px; color:var(--text-secondary);">(Aguardando: ${majorityDev})</span>`;
                 }
             } else if (hasVersionInfo && currentUser === 'Samuel Santos') {
-                // Show GitLab Button for Admin
                  versionInputs = `
                     <div style="margin-top: 5px; display: flex; align-items: center;">
                         <button class="btn" style="background-color: #6C5CE7; color: white; padding: 0.3rem 0.8rem; font-size: 0.75rem; display: flex; align-items: center; gap: 5px;" onclick="window.createGitLabIssue('${projectName}')">
@@ -110,12 +90,10 @@ function renderGroupedTable(data, containerId, onEdit, isApprovedTable = false) 
             }
         }
 
-        // Add Project Header
         const headerRow = document.createElement('tr');
         headerRow.className = 'group-header';
         if (headerStyle) headerRow.style.cssText = headerStyle;
         
-        // Wrap content
         headerRow.innerHTML = `
             <td colspan="8">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -126,14 +104,11 @@ function renderGroupedTable(data, containerId, onEdit, isApprovedTable = false) 
         `;
         body.appendChild(headerRow);
 
-        // Add PR Rows
         projectPrs.forEach((pr) => {
             const tr = document.createElement('tr');
             
-            // Action Column Content
             let actionContent = '';
             if (!isApprovedTable) {
-                // Only show edit button for Open PRs
                 actionContent = `
                     <button class="btn btn-outline edit-btn" style="padding: 0.4rem;">
                         <i data-lucide="edit-3" style="width: 14px;"></i>
@@ -183,17 +158,14 @@ function showLoading(show) {
     const displayStyle = show ? 'none' : 'block';
     const loadingStyle = show ? 'flex' : 'none';
 
-    // Tables
     const dashboard = document.getElementById('dashboard');
     const dashboardApproved = document.getElementById('dashboardApproved');
     if (dashboard) dashboard.style.display = displayStyle;
     if (dashboardApproved) dashboardApproved.style.display = displayStyle;
 
-    // Loaders
     const loadingOpen = document.getElementById('loadingOpen');
     const loadingApproved = document.getElementById('loadingApproved'); 
     
-    // Fallback if elements not found (during transition)
     if (loadingOpen) loadingOpen.style.display = loadingStyle;
     if (loadingApproved) loadingApproved.style.display = loadingStyle;
 }

@@ -1,9 +1,7 @@
-// apiService.js
 import { getItem } from './localStorageService.js';
 
 const API_BASE_URL = 'https://api.github.com';
 
-// These could be configurable via a setup modal/localStorage
 const DEFAULT_CONFIG = {
     owner: 'SamuelAraag',
     repo: 'pr-manager',
@@ -13,7 +11,6 @@ const DEFAULT_CONFIG = {
 
 function getConfig() {
     const savedConfig = getItem('githubConfig');
-    // Force the branch to always be database-strategy regardless of saved config
     return { 
         ...(savedConfig || DEFAULT_CONFIG), 
         branch: 'database-strategy' 
@@ -47,7 +44,6 @@ async function fetchPRs() {
         }
         
         const fileData = await response.json();
-        // Modern and safe way to decode base64 utf-8
         const decodedContent = decodeURIComponent(escape(atob(fileData.content.replace(/\s/g, ''))));
 
         if (decodedContent.trim() === '') {

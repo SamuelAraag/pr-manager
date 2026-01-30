@@ -1,4 +1,3 @@
-// script.js
 import * as LocalStorage from './localStorageService.js';
 import * as API from './apiService.js';
 import * as DOM from './domService.js';
@@ -8,7 +7,6 @@ let currentData = { prs: [] };
 let currentSha = null;
 const validDevs = ['Rodrigo Barbosa', 'Itallo Cerqueira', 'Marcos Paulo', 'Samuel Santos'];
 
-// DOM Elements
 const prModal = document.getElementById('prModal');
 const setupModal = document.getElementById('setupModal');
 const shortcutsModal = document.getElementById('shortcutsModal');
@@ -18,9 +16,7 @@ const profileScreen = document.getElementById('profileScreen');
 const currentUserDisplay = document.getElementById('currentUserDisplay');
 const approveBtn = document.getElementById('approveBtn');
 
-// Keyboard Shortcuts
 window.addEventListener('keydown', (e) => {
-    // If typing in an input or select, only Cmd+Enter is a shortcut
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
         if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
             e.preventDefault();
@@ -31,7 +27,6 @@ window.addEventListener('keydown', (e) => {
 
     const key = e.key.toLowerCase();
 
-    // Global Shortcuts
     if (key === 'n') {
         e.preventDefault();
         openAddModal();
@@ -58,18 +53,15 @@ function closeAllModals() {
     shortcutsModal.style.display = 'none';
 }
 
-// Init
 async function init() {
     LocalStorage.init();
     
-    // Check for user
     const appUser = LocalStorage.getItem('appUser');
     if (!appUser) {
         showProfileSelection();
     } else {
         updateUserDisplay(appUser);
         
-        // Check if token exists
         const token = LocalStorage.getItem('githubToken');
         if (!token) {
             openSetupModal();
@@ -90,7 +82,6 @@ function openSetupModal() {
 }
 
 function updateUserDisplay(userName) {
-    // Defines profile images
     const profileImages = {
         'Itallo Cerqueira': 'src/assets/profiles/itallo-cerqueira.jpeg',
         'Rodrigo Barbosa': 'src/assets/profiles/rodrigo-barbosa.jpeg'
@@ -98,7 +89,7 @@ function updateUserDisplay(userName) {
 
     const imageSrc = profileImages[userName] || 'src/assets/profiles/default-profile.png';
 
-    currentUserDisplay.innerHTML = ''; // Clear text
+    currentUserDisplay.innerHTML = '';
     currentUserDisplay.style.background = 'transparent';
     currentUserDisplay.style.alignItems = 'normal';
     currentUserDisplay.style.justifyContent = 'normal';
@@ -108,7 +99,6 @@ function updateUserDisplay(userName) {
         style: "width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;"
     }));
 
-    // Show/Hide Verify Button based on user
     if (userName === 'Samuel Santos') {
         document.documentElement.style.setProperty('--admin-display', 'flex');
     } else {
@@ -116,7 +106,6 @@ function updateUserDisplay(userName) {
     }
 }
 
-// Profile Selection Event
 document.querySelectorAll('.profile-item').forEach(item => {
     item.addEventListener('click', () => {
         const userName = item.getAttribute('data-user');
@@ -124,7 +113,6 @@ document.querySelectorAll('.profile-item').forEach(item => {
         updateUserDisplay(userName);
         profileScreen.style.display = 'none';
         
-        // Re-run init logic now that user is set
         const token = LocalStorage.getItem('githubToken');
         if (!token) {
             setupModal.style.display = 'flex';
@@ -134,10 +122,6 @@ document.querySelectorAll('.profile-item').forEach(item => {
     });
 });
 
-// Click on avatar to change user
-currentUserDisplay.addEventListener('click', () => {
-    profileScreen.style.display = 'flex';
-});
 
 function updateReqVersionButton() {
     const btn = document.getElementById('reqVersionBtn');
@@ -148,7 +132,7 @@ function updateReqVersionButton() {
     if (hasPendingRequest) {
         btn.textContent = 'Aguardando Versão...';
         btn.disabled = true;
-        btn.classList.add('btn-outline'); // optional style change
+        btn.classList.add('btn-outline');
         btn.style.opacity = '0.6';
         btn.style.cursor = 'not-allowed';
     } else {
@@ -184,15 +168,13 @@ function openEditModal(pr) {
     document.getElementById('prLink').value = pr.prLink || '';
     document.getElementById('taskLink').value = pr.taskLink || '';
     document.getElementById('teamsLink').value = pr.teamsLink || '';
-    // Handle Approval State
+
     const appUser = LocalStorage.getItem('appUser');
     const isSamuel = appUser === 'Samuel Santos';
     const isApproved = !!pr.approved;
 
-    // Show Approve Button ONLY if: It's Samuel AND Not Approved yet
     approveBtn.style.display = (isSamuel && !isApproved) ? 'block' : 'none';
 
-    // Lock fields if approved
     const fieldsToLock = ['project', 'dev', 'summary', 'prLink', 'taskLink', 'teamsLink'];
     fieldsToLock.forEach(id => {
         document.getElementById(id).disabled = isApproved;
@@ -212,14 +194,11 @@ function openAddModal() {
     prForm.reset();
     document.getElementById('prId').value = '';
     
-    // Auto-fill developer with current app user
     const appUser = LocalStorage.getItem('appUser');
     if (appUser) {
         document.getElementById('dev').value = appUser;
     }
 
-    // Reset version section
-    // Reset Lock
     approveBtn.style.display = 'none';
     const fieldsToLock = ['project', 'dev', 'summary', 'prLink', 'taskLink', 'teamsLink'];
     fieldsToLock.forEach(id => {
@@ -229,13 +208,11 @@ function openAddModal() {
     prModal.style.display = 'flex';
 }
 
-// Event Listeners
 document.getElementById('addPrBtn').addEventListener('click', openAddModal);
 document.getElementById('setupBtn').addEventListener('click', () => setupModal.style.display = 'flex');
 document.getElementById('shortcutsBtn').addEventListener('click', () => shortcutsModal.style.display = 'flex');
 document.getElementById('changeUserBtn').addEventListener('click', showProfileSelection);
 
-// Approve PR Action
 approveBtn.addEventListener('click', async (e) => {
     e.preventDefault();
     const prId = document.getElementById('prId').value;
@@ -247,12 +224,6 @@ approveBtn.addEventListener('click', async (e) => {
             currentData.prs[index].approved = true;
             currentData.prs[index].approvedBy = 'Samuel Santos';
             currentData.prs[index].approvedAt = new Date().toISOString();
-            
-            // Re-open/Refresh modal logic to apply lock visual immediately before saving?
-            // Or just save. Let's save.
-            
-            // We need to trigger a save. We can re-use the form submit logic or call API directly.
-            // Calling API directly is safer/cleaner here.
             
             try {
                 DOM.showLoading(true);
@@ -272,14 +243,10 @@ approveBtn.addEventListener('click', async (e) => {
     }
 });
 
-// Request Version Action
 const reqVersionBtn = document.getElementById('reqVersionBtn');
 if (reqVersionBtn) {
     reqVersionBtn.addEventListener('click', async () => {
-        // Find approved PRs that don't have version and not yet requested
         const approvedPrs = currentData.prs.filter(p => p.approved);
-        // We set versionRequested = true for all approved PRs (group based logic handled in render)
-        // or just strict boolean flag on all.
         
         let changed = false;
         approvedPrs.forEach(pr => {
@@ -308,24 +275,21 @@ if (reqVersionBtn) {
     });
 }
 
-// Validation and Auto-fill for Dev Input
 const devInput = document.getElementById('dev');
 
 devInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         const typedValue = e.target.value.trim().toLowerCase();
         
-        // If empty or already a perfect match, let it be
         if (!typedValue || validDevs.some(d => d.toLowerCase() === typedValue)) {
             return;
         }
 
-        // Find the first dev that starts with what was typed
         const match = validDevs.find(d => d.toLowerCase().startsWith(typedValue));
         
         if (match) {
-            e.preventDefault(); // Prevent form submission
-            e.target.value = match; // Auto-fill with the match
+            e.preventDefault();
+            e.target.value = match;
             DOM.showToast(`Auto-preenchido: ${match}`);
         }
     }
@@ -338,12 +302,10 @@ devInput.addEventListener('change', (e) => {
     }
 });
 
-// Close modals
 document.querySelectorAll('.close-btn, .close-modal').forEach(btn => {
     btn.addEventListener('click', closeAllModals);
 });
 
-// Save Config (Token)
 document.getElementById('saveConfigBtn').addEventListener('click', () => {
     const ghToken = ghTokenInput.value.trim();
     const glToken = document.getElementById('glTokenInput').value.trim();
@@ -359,7 +321,6 @@ document.getElementById('saveConfigBtn').addEventListener('click', () => {
     }
 });
 
-// Form Submit
 prForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -380,7 +341,7 @@ prForm.addEventListener('submit', async (e) => {
         prLink: document.getElementById('prLink').value,
         taskLink: document.getElementById('taskLink').value,
         teamsLink: document.getElementById('teamsLink').value,
-        reqVersion: 'ok', // Deprecated or default
+        reqVersion: 'ok',
         approved: prId ? (currentData.prs.find(p => p.id === prId)?.approved || false) : false,
         updatedAt: new Date().toISOString()
     };
@@ -421,7 +382,6 @@ prForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Save Version for Group (Exposed to Window for inline onclick)
 window.saveGroupVersion = async (projectName) => {
     const escapedName = projectName.replace(/\s/g, '');
     const version = document.getElementById(`v_ver_${escapedName}`).value;
@@ -441,8 +401,8 @@ window.saveGroupVersion = async (projectName) => {
                 pr.version = version;
                 pr.pipelineLink = pipeline;
                 pr.rollback = rollback;
-                pr.versionRequested = false; // Reset state
-                pr.versionGroupStatus = 'done'; // Optional tracking
+                pr.versionRequested = false;
+                pr.versionGroupStatus = 'done';
                 changed = true;
             }
         });
@@ -464,7 +424,6 @@ window.saveGroupVersion = async (projectName) => {
     }
 };
 
-// Create GitLab Issue
 window.createGitLabIssue = async (projectName) => {
     const token = LocalStorage.getItem('gitlabToken');
     if (!token) {
@@ -477,7 +436,6 @@ window.createGitLabIssue = async (projectName) => {
     const prs = currentData.prs.filter(p => p.project === projectName && p.approved);
     if (!prs.length) return;
 
-    // Get version info from the first PR (they should be synced)
     const info = prs[0];
     
     if (!info.version) {
@@ -505,5 +463,4 @@ window.createGitLabIssue = async (projectName) => {
     }
 };
 
-// Start the app
 init();
