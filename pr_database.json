@@ -53,9 +53,13 @@
       "updatedAt": "2026-01-30T15:47:27.438Z",
       "approvedBy": "Samuel Santos",
       "approvedAt": "2026-01-30T15:47:37.257Z",
-      "versionRequested": true,
-      "versionBatchId": "1769788074418"
+      "versionRequested": false,
+      "versionBatchId": "1769788074418",
+      "version": "12.12.12.12",
+      "pipelineLink": "https://asdf.com",
+      "rollback": "23.23.23.23",
+      "versionGroupStatus": "done"
     }
   ],
-  "last_updated": "2026-01-30T15:47:54.419Z"
+  "last_updated": "2026-01-30T15:48:15.962Z"
 }
