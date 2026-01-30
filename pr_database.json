@@ -139,7 +139,19 @@
       "updatedAt": "2026-01-30T19:58:40.819Z",
       "approvedBy": "Samuel Santos",
       "approvedAt": "2026-01-30T19:59:25.490Z"
+    },
+    {
+      "id": "8QiHYEsw",
+      "project": "NFS-e Conversor",
+      "dev": "Rodrigo Barbosa",
+      "summary": "Atualização docker & Log fora do foreach",
+      "prLink": "https://gitlab.com/invent-software/taxplus/inventapps/documentos-eletr-nicos/taxplus-nfse-conversor/-/merge_requests/24",
+      "taskLink": "https://invent-software.atlassian.net/browse/TXDF-1109?atlOrigin=eyJpIjoiYTM0MGI4ZmUxZjhkNGFlOWFmMjlhODc0NTY0ZjlkMDIiLCJwIjoiSmlyYS1Ob3Rpb25MaW5rLUludCJ9",
+      "teamsLink": "https://teams.microsoft.com/l/message/19:7f348a985f10465e8fe925b511d98249@thread.tacv2/1769772102691?tenantId=9485bd55-92c0-4212-96ca-9143bb8a7045&groupId=47045f0e-b327-4f59-ae23-fe0e6085ea8f&parentMessageId=1769772102691&teamName=Projetos%20Cloud&channelName=TaxPlus%20-%20DF-e&createdTime=1769772102691",
+      "reqVersion": "ok",
+      "approved": false,
+      "updatedAt": "2026-01-30T20:21:21.889Z"
     }
   ],
-  "last_updated": "2026-01-30T19:59:25.491Z"
+  "last_updated": "2026-01-30T20:21:21.891Z"
 }
