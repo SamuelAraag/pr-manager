@@ -202,75 +202,96 @@ function renderTestingTable(data, containerId, onEdit) {
     const container = document.getElementById(containerId);
     if (!container) return;
     container.innerHTML = '';
+    
     if (data.length === 0) {
         container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary); background: #161b22; border: 1px solid #30363d; border-radius: 6px;">Nenhuma versão em teste (STG).</div>';
         return;
     }
-    const grouped = data.reduce((acc, pr) => {
-        const project = pr.project || 'Outros';
-        // Group logic: we might have multiple versions for same project theoretically, but let's simple-group by project first
-        // If needed, we can compound key 'project-version'
-        const key = `${project}-${pr.version}`; 
-        if (!acc[key]) acc[key] = [];
-        acc[key].push(pr);
+
+    // 1. Group by Sprint
+    const bySprint = data.reduce((acc, pr) => {
+        const sprint = pr.sprint || 'Outras Versões';
+        if (!acc[sprint]) acc[sprint] = [];
+        acc[sprint].push(pr);
         return acc;
     }, {});
-    
-    // Reverse logic: show latest versions?
-    const keys = Object.keys(grouped).sort();
 
-    keys.forEach(key => {
-        const projectPrs = grouped[key];
-        const info = projectPrs[0];
-        const project = info.project;
+    // Sort Sprints (Desc or Asc? Assuming Sprint 144 > Sprint 143, so Descending)
+    const sprints = Object.keys(bySprint).sort().reverse();
+
+    sprints.forEach(sprintName => {
+        // Sprint Header
+        const sprintHeader = document.createElement('h3');
+        sprintHeader.textContent = sprintName;
+        sprintHeader.style.cssText = 'color: var(--text-primary); margin: 2rem 0 1rem 0; padding-left: 15px; padding-bottom: 0.5rem; border-bottom: 1px solid #30363d; border-left: 4px solid #8e44ad; font-size: 1.1rem; opacity: 0.9;';
+        container.appendChild(sprintHeader);
+
+        const projectPrsInSprint = bySprint[sprintName];
+
+        // 2. Group by Project-Version within Sprint
+        const byProjectVer = projectPrsInSprint.reduce((acc, pr) => {
+            const project = pr.project || 'Outros';
+            const key = `${project}-${pr.version}`; 
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(pr);
+            return acc;
+        }, {});
         
-        let gitlabLink = '';
-        if (info.gitlabIssueLink) {
-                gitlabLink = `
-                <a href="${info.gitlabIssueLink}" target="_blank" class="btn" style="background-color: #30363d; color: var(--text-secondary); padding: 0.2rem 0.6rem; font-size: 0.75rem; margin-left: 10px; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; border: 1px solid #444; border-radius: 4px;">
-                    <i data-lucide="gitlab" style="width: 14px;"></i>
-                    Ver Chamado
-                </a>
+        const keys = Object.keys(byProjectVer).sort();
+
+        keys.forEach(key => {
+            const prs = byProjectVer[key];
+            const info = prs[0];
+            const project = info.project;
+            
+            let gitlabLink = '';
+            if (info.gitlabIssueLink) {
+                    gitlabLink = `
+                    <a href="${info.gitlabIssueLink}" target="_blank" class="btn" style="background-color: #30363d; color: var(--text-secondary); padding: 0.2rem 0.6rem; font-size: 0.75rem; margin-left: 10px; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; border: 1px solid #444; border-radius: 4px;">
+                        <i data-lucide="gitlab" style="width: 14px;"></i>
+                        Ver Chamado
+                    </a>
+                `;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'data-card';
+            card.style.marginBottom = '1.5rem';
+            card.style.borderLeft = '4px solid #8e44ad'; // Purple indicator for STG
+
+            const headerDiv = document.createElement('div');
+            headerDiv.style.padding = '1rem';
+            headerDiv.style.borderBottom = '1px solid #30363d';
+            headerDiv.style.display = 'flex';
+            headerDiv.style.justifyContent = 'space-between';
+            headerDiv.style.alignItems = 'center';
+            
+            headerDiv.innerHTML = `
+                <div style="display:flex; align-items:center;">
+                    <span style="font-weight: 600; font-size: 1.1rem;">${project}</span>
+                    <span class="tag" style="background:#8e44ad; color:white; margin-left: 10px;">v${info.version}</span>
+                </div>
+                <div style="display:flex; align-items:center;">
+                    ${gitlabLink}
+                </div>
             `;
-        }
+            
+            const tableContainer = document.createElement('div');
+            tableContainer.className = 'table-container';
+            const table = document.createElement('table');
+            table.innerHTML = `<thead><tr><th>Projeto</th><th>Resumo</th><th>Dev</th><th>Links</th></tr></thead><tbody></tbody>`;
+            const tbody = table.querySelector('tbody');
+            prs.forEach(pr => {
+                 const tr = document.createElement('tr');
+                 tr.innerHTML = `<td><span class="tag">${pr.project || '-'}</span></td><td>${pr.summary || '-'}</td><td>${pr.dev || '-'}</td><td><div style="display: flex; gap: 0.8rem;">${pr.taskLink ? `<a href="${pr.taskLink}" target="_blank" class="link-icon"><i data-lucide="external-link" style="width: 14px;"></i></a>` : ''}${pr.prLink ? `<a href="${pr.prLink}" target="_blank" class="link-icon"><i data-lucide="git-pull-request" style="width: 14px;"></i></a>` : ''}</div></td>`;
+                 tbody.appendChild(tr);
+            });
 
-        const card = document.createElement('div');
-        card.className = 'data-card';
-        card.style.marginBottom = '2rem';
-        card.style.borderLeft = '4px solid #8e44ad'; // Purple indicator for STG
-
-        const headerDiv = document.createElement('div');
-        headerDiv.style.padding = '1rem';
-        headerDiv.style.borderBottom = '1px solid #30363d';
-        headerDiv.style.display = 'flex';
-        headerDiv.style.justifyContent = 'space-between';
-        headerDiv.style.alignItems = 'center';
-        
-        headerDiv.innerHTML = `
-            <div style="display:flex; align-items:center;">
-                <span style="font-weight: 600; font-size: 1.1rem;">${project}</span>
-                <span class="tag" style="background:#8e44ad; color:white; margin-left: 10px;">v${info.version}</span>
-            </div>
-            <div style="display:flex; align-items:center;">
-                ${gitlabLink}
-            </div>
-        `;
-        
-        const tableContainer = document.createElement('div');
-        tableContainer.className = 'table-container';
-        const table = document.createElement('table');
-        table.innerHTML = `<thead><tr><th>Projeto</th><th>Resumo</th><th>Dev</th><th>Links</th></tr></thead><tbody></tbody>`;
-        const tbody = table.querySelector('tbody');
-        projectPrs.forEach(pr => {
-             const tr = document.createElement('tr');
-             tr.innerHTML = `<td><span class="tag">${pr.project || '-'}</span></td><td>${pr.summary || '-'}</td><td>${pr.dev || '-'}</td><td><div style="display: flex; gap: 0.8rem;">${pr.taskLink ? `<a href="${pr.taskLink}" target="_blank" class="link-icon"><i data-lucide="external-link" style="width: 14px;"></i></a>` : ''}${pr.prLink ? `<a href="${pr.prLink}" target="_blank" class="link-icon"><i data-lucide="git-pull-request" style="width: 14px;"></i></a>` : ''}</div></td>`;
-             tbody.appendChild(tr);
+            tableContainer.appendChild(table);
+            card.appendChild(headerDiv);
+            card.appendChild(tableContainer);
+            container.appendChild(card);
         });
-
-        tableContainer.appendChild(table);
-        card.appendChild(headerDiv);
-        card.appendChild(tableContainer);
-        container.appendChild(card);
     });
 }
 

@@ -449,13 +449,21 @@ window.requestVersion = async (projectName) => {
 
 window.confirmDeploy = async (projectName) => {
     // Release to STG
-    if (confirm(`Confirmar liberação de "${projectName}" para ambiente de Teste (STG)?\nIsso moverá os PRs para a tabela de 'Versões em Teste'.`)) {
+    if (confirm(`Confirmar liberação de "${projectName}" para ambiente de Teste (STG)?`)) {
+        
+        const sprintName = prompt("Informe a SPRINT desta liberação (ex: Sprint 143):", "Sprint ");
+        if (!sprintName || sprintName.trim() === "Sprint" || sprintName.trim() === "") {
+             DOM.showToast('Liberação cancelada: Sprint é obrigatória.', 'info');
+             return;
+        }
+
         let changed = false;
         
         currentData.prs.forEach(pr => {
              if (pr.project === projectName && pr.approved && pr.version && !pr.deployedToStg) {
                  pr.deployedToStg = true;
                  pr.deployedToStgAt = new Date().toISOString();
+                 pr.sprint = sprintName.trim();
                  changed = true;
              }
         });
@@ -466,7 +474,7 @@ window.confirmDeploy = async (projectName) => {
                 const result = await API.savePRs(currentData, currentSha);
                 currentData = result.newData;
                 currentSha = result.newSha;
-                DOM.showToast('Versão liberada para Teste (STG)!');
+                DOM.showToast(`Versão liberada para Teste (STG) na ${sprintName}!`);
                 DOM.renderTable(currentData.prs, openEditModal);
             } catch (error) {
                  DOM.showToast('Erro ao liberar versão: ' + error.message, 'error');
