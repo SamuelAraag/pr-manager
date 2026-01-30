@@ -9,8 +9,46 @@ let currentSha = null;
 // DOM Elements
 const prModal = document.getElementById('prModal');
 const setupModal = document.getElementById('setupModal');
+const shortcutsModal = document.getElementById('shortcutsModal');
 const prForm = document.getElementById('prForm');
 const ghTokenInput = document.getElementById('ghTokenInput');
+
+// Keyboard Shortcuts
+window.addEventListener('keydown', (e) => {
+    // If typing in an input or select, only Cmd+Enter is a shortcut
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+            e.preventDefault();
+            prForm.requestSubmit();
+        }
+        return;
+    }
+
+    const key = e.key.toLowerCase();
+
+    // Global Shortcuts
+    if (key === 'n') {
+        e.preventDefault();
+        openAddModal();
+    } else if (key === 's') {
+        e.preventDefault();
+        setupModal.style.display = 'flex';
+    } else if (key === 'r') {
+        e.preventDefault();
+        loadData();
+    } else if (key === '?' || (e.shiftKey && e.key === '?')) {
+        e.preventDefault();
+        shortcutsModal.style.display = 'flex';
+    } else if (e.key === 'Escape') {
+        closeAllModals();
+    }
+});
+
+function closeAllModals() {
+    prModal.style.display = 'none';
+    setupModal.style.display = 'none';
+    shortcutsModal.style.display = 'none';
+}
 
 // Init
 async function init() {
@@ -51,7 +89,6 @@ function openEditModal(pr) {
     document.getElementById('pipelineLink').value = pr.pipelineLink || '';
     document.getElementById('version').value = pr.version || '';
     document.getElementById('rollback').value = pr.rollback || '';
-    document.getElementById('rev').value = pr.rev || '';
     document.getElementById('reqVersion').value = pr.reqVersion || '';
     document.getElementById('docLink').value = pr.docLink || '';
     
@@ -68,13 +105,11 @@ function openAddModal() {
 // Event Listeners
 document.getElementById('addPrBtn').addEventListener('click', openAddModal);
 document.getElementById('setupBtn').addEventListener('click', () => setupModal.style.display = 'flex');
+document.getElementById('shortcutsBtn').addEventListener('click', () => shortcutsModal.style.display = 'flex');
 
 // Close modals
 document.querySelectorAll('.close-btn, .close-modal').forEach(btn => {
-    btn.addEventListener('click', () => {
-        prModal.style.display = 'none';
-        setupModal.style.display = 'none';
-    });
+    btn.addEventListener('click', closeAllModals);
 });
 
 // Save Config (Token)
@@ -105,7 +140,7 @@ prForm.addEventListener('submit', async (e) => {
         pipelineLink: document.getElementById('pipelineLink').value,
         version: document.getElementById('version').value,
         rollback: document.getElementById('rollback').value,
-        rev: document.getElementById('rev').value,
+        rev: prId ? (currentData.prs.find(p => p.id === prId)?.rev || false) : false,
         reqVersion: document.getElementById('reqVersion').value,
         docLink: document.getElementById('docLink').value,
         updatedAt: new Date().toISOString()

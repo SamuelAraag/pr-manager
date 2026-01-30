@@ -17,7 +17,7 @@ Para mudar o repositório onde os dados são salvos, altere a constante `DEFAULT
 ```javascript
 const DEFAULT_CONFIG = {
     owner: 'SamuelAraag',
-    repo: 'ToDo-List',
+    repo: 'pr-manager',
     filePath: 'pr_database.json',
     branch: 'main'
 };

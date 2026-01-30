@@ -36,7 +36,9 @@ function renderTable(prs, onEdit) {
         tr.innerHTML = `
             <td><span class="tag">${pr.project || '-'}</span></td>
             <td style="font-weight: 500;">${pr.summary || '-'}</td>
-            <td style="color: var(--text-secondary);">${pr.rev || '-'}</td>
+            <td style="text-align: center;">
+                ${pr.rev ? '<i data-lucide="check-circle" style="width: 16px; color: #58a6ff;"></i>' : '-'}
+            </td>
             <td>${pr.dev || '-'}</td>
             <td>
                 <div style="font-size: 0.85rem;">

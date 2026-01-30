@@ -6,7 +6,7 @@ const API_BASE_URL = 'https://api.github.com';
 // These could be configurable via a setup modal/localStorage
 const DEFAULT_CONFIG = {
     owner: 'SamuelAraag',
-    repo: 'ToDo-List',
+    repo: 'pr-manager',
     filePath: 'pr_database.json',
     branch: 'main' // Or another branch
 };

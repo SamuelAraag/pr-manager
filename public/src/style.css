@@ -50,6 +50,7 @@ h1 {
     font-weight: 700;
     background: linear-gradient(90deg, #58a6ff, #bc85ff);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -257,6 +258,38 @@ input:focus, select:focus {
     align-items: center;
     gap: 1rem;
     padding: 3rem;
+}
+
+/* Keyboard Shortcuts Display */
+kbd {
+    background-color: #30363d;
+    border: 1px solid var(--border-color);
+    border-bottom: 3px solid var(--border-color);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+.shortcuts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.shortcut-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.shortcut-item span {
+    font-size: 0.9rem;
+    color: var(--text-primary);
 }
 
 /* Success/Error Toasts */

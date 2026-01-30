@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,18 +9,23 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body>
     <div class="container">
         <header>
             <div class="logo-area">
                 <h1>PR Manager</h1>
-                <p style="color: var(--text-secondary); font-size: 0.8rem;">Controle de PRs com persistência no GitHub</p>
+                <p style="color: var(--text-secondary); font-size: 0.8rem;">Controle de PRs centralizados
+                </p>
             </div>
             <div class="actions">
-                <button id="setupBtn" class="btn btn-outline" title="Configurar Token">
+                <button id="shortcutsBtn" class="btn btn-outline" title="Atalhos (Shift + ?)">
+                    <i data-lucide="keyboard"></i>
+                </button>
+                <button id="setupBtn" class="btn btn-outline" title="Configurar Token (S)">
                     <i data-lucide="settings"></i>
                 </button>
-                <button id="addPrBtn" class="btn btn-primary">
+                <button id="addPrBtn" class="btn btn-primary" title="Novo PR (N)">
                     <i data-lucide="plus"></i> Novo PR
                 </button>
             </div>
@@ -53,6 +59,41 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <div id="shortcutsModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h2>Atalhos do Teclado</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="shortcuts-list">
+                <div class="shortcut-item">
+                    <span>Novo PR</span>
+                    <kbd>N</kbd>
+                </div>
+                <div class="shortcut-item">
+                    <span>Configurações</span>
+                    <kbd>S</kbd>
+                </div>
+                <div class="shortcut-item">
+                    <span>Atualizar Dados</span>
+                    <kbd>R</kbd>
+                </div>
+                <div class="shortcut-item">
+                    <span>Ver Atalhos</span>
+                    <kbd>?</kbd>
+                </div>
+                <div class="shortcut-item">
+                    <span>Fechar Modal</span>
+                    <kbd>Esc</kbd>
+                </div>
+                <div class="shortcut-item">
+                    <span>Salvar Form</span>
+                    <kbd>⌘ + Enter</kbd>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Setup Modal (Token) -->
@@ -127,10 +168,6 @@
                         <input type="text" id="rollback" placeholder="26.01.13.403">
                     </div>
                     <div class="form-group">
-                        <label>Rev</label>
-                        <input type="text" id="rev" placeholder="-">
-                    </div>
-                    <div class="form-group">
                         <label>Solicitado Versão</label>
                         <input type="text" id="reqVersion" placeholder="ok">
                     </div>
@@ -156,4 +193,5 @@
         setTimeout(() => lucide.createIcons(), 100);
     </script>
 </body>
+
 </html>
