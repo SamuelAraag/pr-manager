@@ -11,14 +11,46 @@
 </head>
 
 <body>
+    <!-- Profile Selection Screen (Disney+ Style) -->
+    <div id="profileScreen" class="modal-overlay" style="display: none; background: #0d1117; z-index: 2000;">
+        <div class="profile-container">
+            <h1>Quem está editando?</h1>
+            <div class="profiles-grid">
+                <div class="profile-item" data-user="Rodrigo Barbosa">
+                    <div class="avatar" style="background: linear-gradient(135deg, #FF512F 0%, #DD2476 100%);">RB</div>
+                    <span>Rodrigo Barbosa</span>
+                </div>
+                <div class="profile-item" data-user="Itallo Cerqueira">
+                    <div class="avatar" style="background: linear-gradient(135deg, #1D976C 0%, #93F9B9 100%);">IC</div>
+                    <span>Itallo Cerqueira</span>
+                </div>
+                <div class="profile-item" data-user="Marcos Paulo">
+                    <div class="avatar" style="background: linear-gradient(135deg, #00B4DB 0%, #0083B0 100%);">MP</div>
+                    <span>Marcos Paulo</span>
+                </div>
+                <div class="profile-item" data-user="Samuel Santos">
+                    <div class="avatar" style="background: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%);">SS</div>
+                    <span>Samuel Santos</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <header>
             <div class="logo-area">
-                <h1>PR Manager</h1>
-                <p style="color: var(--text-secondary); font-size: 0.8rem;">Controle de PRs centralizados
-                </p>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div id="currentUserDisplay" class="current-user-avatar" title="Mudar Usuário">--</div>
+                    <div>
+                        <h1>PR Manager</h1>
+                        <p style="color: var(--text-secondary); font-size: 0.8rem;">Controle de PRs centralizados</p>
+                    </div>
+                </div>
             </div>
             <div class="actions">
+                <button id="changeUserBtn" class="btn btn-outline" title="Trocar Usuário (U)">
+                    <i data-lucide="users"></i>
+                </button>
                 <button id="shortcutsBtn" class="btn btn-outline" title="Atalhos (Shift + ?)">
                     <i data-lucide="keyboard"></i>
                 </button>
@@ -85,6 +117,10 @@
                     <kbd>?</kbd>
                 </div>
                 <div class="shortcut-item">
+                    <span>Mudar Usuário</span>
+                    <kbd>U</kbd>
+                </div>
+                <div class="shortcut-item">
                     <span>Fechar Modal</span>
                     <kbd>Esc</kbd>
                 </div>
@@ -141,11 +177,17 @@
                     </div>
                     <div class="form-group">
                         <label>Desenvolvedor</label>
-                        <input type="text" id="dev" placeholder="Ex: Rodrigo" required>
+                        <input type="text" id="dev" list="devList" placeholder="Selecione ou digite..." required>
+                        <datalist id="devList">
+                            <option value="Rodrigo Barbosa">
+                            <option value="Itallo Cerqueira">
+                            <option value="Marcos Paulo">
+                            <option value="Samuel Santos">
+                        </datalist>
                     </div>
                     <div class="form-group full-width">
                         <label>Resumo</label>
-                        <input type="text" id="summary" placeholder="Ex: [T] Correção do cálculo de imposto" required>
+                        <input type="text" id="summary" placeholder="Ex: Correção do cálculo de imposto" required>
                     </div>
                     <div class="form-group">
                         <label>Link PR</label>
@@ -159,25 +201,32 @@
                         <label>Post no Teams</label>
                         <input type="url" id="teamsLink" placeholder="Link da mensagem">
                     </div>
-                    <div class="form-group">
-                        <label>Pipeline</label>
-                        <input type="url" id="pipelineLink" placeholder="Link do CI/CD">
+                    <div class="form-group full-width"
+                        style="margin: 1rem 0; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="generateVersion">
+                            <span>Gerar Versão?</span>
+                        </label>
                     </div>
-                    <div class="form-group">
-                        <label>Versão Atual</label>
-                        <input type="text" id="version" placeholder="26.01.27.412">
-                    </div>
-                    <div class="form-group">
-                        <label>Versão Rollback</label>
-                        <input type="text" id="rollback" placeholder="26.01.13.403">
-                    </div>
-                    <div class="form-group">
-                        <label>Solicitado Versão</label>
-                        <input type="text" id="reqVersion" placeholder="ok">
-                    </div>
-                    <div class="form-group full-width">
-                        <label>Doc Link</label>
-                        <input type="url" id="docLink" placeholder="Sharepoint / Confluence">
+
+                    <!-- Version Section (Hidden by default) -->
+                    <div id="versionSection" class="form-grid full-width" style="display: none; grid-column: span 2;">
+                        <div class="form-group">
+                            <label>Pipeline</label>
+                            <input type="url" id="pipelineLink" placeholder="Link do CI/CD">
+                        </div>
+                        <div class="form-group">
+                            <label>Nova versão</label>
+                            <input type="text" id="version" placeholder="26.01.27.412">
+                        </div>
+                        <div class="form-group">
+                            <label>Versão Rollback</label>
+                            <input type="text" id="rollback" placeholder="26.01.13.403">
+                        </div>
+                        <div class="form-group">
+                            <label>Solicitado Versão</label>
+                            <input type="text" id="reqVersion" placeholder="ok">
+                        </div>
                     </div>
                 </div>
                 <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">

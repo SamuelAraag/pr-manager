@@ -5,6 +5,7 @@ import * as DOM from './domService.js';
 
 let currentData = { prs: [] };
 let currentSha = null;
+const validDevs = ['Rodrigo Barbosa', 'Itallo Cerqueira', 'Marcos Paulo', 'Samuel Santos'];
 
 // DOM Elements
 const prModal = document.getElementById('prModal');
@@ -12,6 +13,10 @@ const setupModal = document.getElementById('setupModal');
 const shortcutsModal = document.getElementById('shortcutsModal');
 const prForm = document.getElementById('prForm');
 const ghTokenInput = document.getElementById('ghTokenInput');
+const generateVersionCheckbox = document.getElementById('generateVersion');
+const versionSection = document.getElementById('versionSection');
+const profileScreen = document.getElementById('profileScreen');
+const currentUserDisplay = document.getElementById('currentUserDisplay');
 
 // Keyboard Shortcuts
 window.addEventListener('keydown', (e) => {
@@ -36,6 +41,9 @@ window.addEventListener('keydown', (e) => {
     } else if (key === 'r') {
         e.preventDefault();
         loadData();
+    } else if (key === 'u') {
+        e.preventDefault();
+        showProfileSelection();
     } else if (key === '?' || (e.shiftKey && e.key === '?')) {
         e.preventDefault();
         shortcutsModal.style.display = 'flex';
@@ -54,14 +62,54 @@ function closeAllModals() {
 async function init() {
     LocalStorage.init();
     
-    // Check if token exists
-    const token = LocalStorage.getItem('githubToken');
-    if (!token) {
-        setupModal.style.display = 'flex';
+    // Check for user
+    const appUser = LocalStorage.getItem('appUser');
+    if (!appUser) {
+        showProfileSelection();
     } else {
-        await loadData();
+        updateUserDisplay(appUser);
+        
+        // Check if token exists
+        const token = LocalStorage.getItem('githubToken');
+        if (!token) {
+            setupModal.style.display = 'flex';
+        } else {
+            await loadData();
+        }
     }
 }
+
+function showProfileSelection() {
+    profileScreen.style.display = 'flex';
+}
+
+function updateUserDisplay(userName) {
+    const initials = userName.split(' ').map(n => n[0]).join('');
+    currentUserDisplay.textContent = initials;
+}
+
+// Profile Selection Event
+document.querySelectorAll('.profile-item').forEach(item => {
+    item.addEventListener('click', () => {
+        const userName = item.getAttribute('data-user');
+        LocalStorage.setItem('appUser', userName);
+        updateUserDisplay(userName);
+        profileScreen.style.display = 'none';
+        
+        // Re-run init logic now that user is set
+        const token = LocalStorage.getItem('githubToken');
+        if (!token) {
+            setupModal.style.display = 'flex';
+        } else {
+            loadData();
+        }
+    });
+});
+
+// Click on avatar to change user
+currentUserDisplay.addEventListener('click', () => {
+    profileScreen.style.display = 'flex';
+});
 
 async function loadData() {
     DOM.showLoading(true);
@@ -90,7 +138,11 @@ function openEditModal(pr) {
     document.getElementById('version').value = pr.version || '';
     document.getElementById('rollback').value = pr.rollback || '';
     document.getElementById('reqVersion').value = pr.reqVersion || '';
-    document.getElementById('docLink').value = pr.docLink || '';
+    
+    // Toggle version section visibility
+    const hasVersion = !!(pr.version || pr.pipelineLink || pr.rollback || pr.reqVersion);
+    generateVersionCheckbox.checked = hasVersion;
+    versionSection.style.display = hasVersion ? 'grid' : 'none';
     
     prModal.style.display = 'flex';
 }
@@ -99,6 +151,17 @@ function openAddModal() {
     document.getElementById('modalTitle').textContent = 'Novo Pull Request';
     prForm.reset();
     document.getElementById('prId').value = '';
+    
+    // Auto-fill developer with current app user
+    const appUser = LocalStorage.getItem('appUser');
+    if (appUser) {
+        document.getElementById('dev').value = appUser;
+    }
+
+    // Reset version section
+    generateVersionCheckbox.checked = false;
+    versionSection.style.display = 'none';
+    
     prModal.style.display = 'flex';
 }
 
@@ -106,6 +169,42 @@ function openAddModal() {
 document.getElementById('addPrBtn').addEventListener('click', openAddModal);
 document.getElementById('setupBtn').addEventListener('click', () => setupModal.style.display = 'flex');
 document.getElementById('shortcutsBtn').addEventListener('click', () => shortcutsModal.style.display = 'flex');
+document.getElementById('changeUserBtn').addEventListener('click', showProfileSelection);
+
+// Toggle version section
+generateVersionCheckbox.addEventListener('change', (e) => {
+    versionSection.style.display = e.target.checked ? 'grid' : 'none';
+});
+
+// Validation and Auto-fill for Dev Input
+const devInput = document.getElementById('dev');
+
+devInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        const typedValue = e.target.value.trim().toLowerCase();
+        
+        // If empty or already a perfect match, let it be
+        if (!typedValue || validDevs.some(d => d.toLowerCase() === typedValue)) {
+            return;
+        }
+
+        // Find the first dev that starts with what was typed
+        const match = validDevs.find(d => d.toLowerCase().startsWith(typedValue));
+        
+        if (match) {
+            e.preventDefault(); // Prevent form submission
+            e.target.value = match; // Auto-fill with the match
+            DOM.showToast(`Auto-preenchido: ${match}`);
+        }
+    }
+});
+
+devInput.addEventListener('change', (e) => {
+    if (e.target.value && !validDevs.includes(e.target.value)) {
+        DOM.showToast('Desenvolvedor inválido. Escolha um da lista.', 'error');
+        e.target.value = '';
+    }
+});
 
 // Close modals
 document.querySelectorAll('.close-btn, .close-modal').forEach(btn => {
@@ -128,11 +227,18 @@ document.getElementById('saveConfigBtn').addEventListener('click', () => {
 prForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const prId = document.getElementById('prId').value;
+    const devInputForForm = document.getElementById('dev');
+
+    if (!validDevs.includes(devInputForForm.value)) {
+        DOM.showToast('Por favor, selecione um desenvolvedor válido da lista.', 'error');
+        devInputForForm.focus();
+        return;
+    }
+
     const pr = {
         id: prId || Date.now().toString(),
         project: document.getElementById('project').value,
-        dev: document.getElementById('dev').value,
+        dev: devInputForForm.value,
         summary: document.getElementById('summary').value,
         prLink: document.getElementById('prLink').value,
         taskLink: document.getElementById('taskLink').value,
@@ -142,7 +248,6 @@ prForm.addEventListener('submit', async (e) => {
         rollback: document.getElementById('rollback').value,
         rev: prId ? (currentData.prs.find(p => p.id === prId)?.rev || false) : false,
         reqVersion: document.getElementById('reqVersion').value,
-        docLink: document.getElementById('docLink').value,
         updatedAt: new Date().toISOString()
     };
 
