@@ -277,8 +277,12 @@
       "approvedAt": "2026-01-30T22:48:05.013Z",
       "needsCorrection": false,
       "correctionReason": null,
-      "versionRequested": true,
-      "versionBatchId": "ggGignE5kH"
+      "versionRequested": false,
+      "versionBatchId": "ggGignE5kH",
+      "version": "12.123.123.1233",
+      "pipelineLink": "http://127.0.0.1:5500/",
+      "rollback": "123.23.2.23",
+      "versionGroupStatus": "done"
     },
     {
       "id": "friiNYgg",
@@ -293,5 +297,5 @@
       "updatedAt": "2026-01-30T22:45:08.328Z"
     }
   ],
-  "last_updated": "2026-01-30T22:52:44.115Z"
+  "last_updated": "2026-01-30T23:02:23.976Z"
 }
