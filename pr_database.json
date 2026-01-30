@@ -45,7 +45,19 @@
       "deployedToStg": true,
       "deployedToStgAt": "2026-01-30T16:54:43.128Z",
       "sprint": "Sprint 27"
+    },
+    {
+      "id": "eJk80M4e",
+      "project": "DF-e",
+      "dev": "Marcos Paulo",
+      "summary": "Aba - Importação de XML por E-mail” na tela Destinatário/Tomador",
+      "prLink": "https://bitbucket.org/invent-software/taxplus.dfe/pull-requests/154/overview",
+      "taskLink": "https://invent-software.atlassian.net/browse/TXDF-1019",
+      "teamsLink": "https://teams.microsoft.com/l/message/19:7f348a985f10465e8fe925b511d98249@thread.tacv2/1769719332732?tenantId=9485bd55-92c0-4212-96ca-9143bb8a7045&groupId=47045f0e-b327-4f59-ae23-fe0e6085ea8f&parentMessageId=1769719332732&teamName=Projetos%20Cloud&channelName=TaxPlus%20-%20DF-e&createdTime=1769719332732",
+      "reqVersion": "ok",
+      "approved": false,
+      "updatedAt": "2026-01-30T17:07:54.386Z"
     }
   ],
-  "last_updated": "2026-01-30T17:00:42.075Z"
+  "last_updated": "2026-01-30T17:07:54.388Z"
 }
