@@ -48,7 +48,8 @@
       "version": "1.1.1.1",
       "pipelineLink": "http://127.0.0.1:5500/index.html",
       "rollback": "1.1.1.1",
-      "versionGroupStatus": "done"
+      "versionGroupStatus": "done",
+      "gitlabIssueLink": "http://www.google.com"
     }
   ],
   "last_updated": "2026-01-30T03:18:06.698Z"
