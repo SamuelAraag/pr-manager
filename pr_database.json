@@ -181,7 +181,19 @@
       "updatedAt": "2026-01-30T20:41:30.232Z",
       "approvedBy": "Samuel Santos",
       "approvedAt": "2026-01-30T20:41:59.506Z"
+    },
+    {
+      "id": "NKKGtu5G",
+      "project": "NF-e Conversor",
+      "dev": "Rodrigo Barbosa",
+      "summary": "Ajuste de log para dashboar",
+      "prLink": "https://gitlab.com/invent-software/taxplus/inventapps/documentos-eletr-nicos/taxplus-nfe-conversor/-/merge_requests/27/diffs",
+      "taskLink": "https://invent-software.atlassian.net/browse/TXDF-1088",
+      "teamsLink": "https://teams.microsoft.com/l/message/19:7f348a985f10465e8fe925b511d98249@thread.tacv2/1769707637253?tenantId=9485bd55-92c0-4212-96ca-9143bb8a7045&groupId=47045f0e-b327-4f59-ae23-fe0e6085ea8f&parentMessageId=1769707637253&teamName=Projetos%20Cloud&channelName=TaxPlus%20-%20DF-e&createdTime=1769707637253",
+      "reqVersion": "ok",
+      "approved": false,
+      "updatedAt": "2026-01-30T20:44:34.263Z"
     }
   ],
-  "last_updated": "2026-01-30T20:41:59.506Z"
+  "last_updated": "2026-01-30T20:44:34.264Z"
 }
