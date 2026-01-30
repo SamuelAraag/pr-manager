@@ -69,7 +69,19 @@
       "reqVersion": "ok",
       "approved": false,
       "updatedAt": "2026-01-30T18:57:08.563Z"
+    },
+    {
+      "id": "QkjUvCkh",
+      "project": "NF-e Buscador InvoiSys",
+      "dev": "Rodrigo Barbosa",
+      "summary": "Atualização da imagem docker pipeline",
+      "prLink": "https://gitlab.com/invent-software/taxplus/inventapps/documentos-eletr-nicos/taxplus-nfe-buscador-invoysys/-/merge_requests/16/diffs",
+      "taskLink": "https://invent-software.atlassian.net/browse/TXDF-1112?atlOrigin=eyJpIjoiYTM0MGI4ZmUxZjhkNGFlOWFmMjlhODc0NTY0ZjlkMDIiLCJwIjoiSmlyYS1Ob3Rpb25MaW5rLUludCJ9",
+      "teamsLink": "https://teams.microsoft.com/l/message/19:7f348a985f10465e8fe925b511d98249@thread.tacv2/1769792369368?tenantId=9485bd55-92c0-4212-96ca-9143bb8a7045&groupId=47045f0e-b327-4f59-ae23-fe0e6085ea8f&parentMessageId=1769792369368&teamName=Projetos%20Cloud&channelName=TaxPlus%20-%20DF-e&createdTime=1769792369368",
+      "reqVersion": "ok",
+      "approved": false,
+      "updatedAt": "2026-01-30T19:27:54.541Z"
     }
   ],
-  "last_updated": "2026-01-30T18:57:08.564Z"
+  "last_updated": "2026-01-30T19:27:54.542Z"
 }
