@@ -536,10 +536,22 @@ window.saveGroupVersion = async (batchId) => {
     }
 };
 
-window.requestVersion = async (projectName) => {
+window.requestVersion = async (prId) => {
+    // Find the PR by ID to get the project name
+    debugger
+    const referencePr = currentData.prs.find(p => p.id === prId);
+    if (!referencePr) {
+        DOM.showToast('PR não encontrado.', 'error');
+        return;
+    }
+    
+    const projectName = referencePr.project;
+    
     // Only target backlog items (no version, no batch)
     const prs = currentData.prs.filter(p => p.project === projectName && p.approved && !p.version && !p.versionBatchId);
-    
+    console.log('PRs encontrados:', prs);
+
+    debugger
     if (!prs.length) return;
 
     if (confirm(`Solicitar versão para ${prs.length} PRs de "${projectName}"?`)) {
@@ -549,12 +561,11 @@ window.requestVersion = async (projectName) => {
         const newBatchId = IdService.generateUniqueId(existingIds, 10);
         
         currentData.prs.forEach(pr => {
-             // Checking exact same conditions to be safe
-             if (pr.project === projectName && pr.approved && !pr.version && !pr.versionBatchId) {
-                 pr.versionRequested = true;
-                 pr.versionBatchId = newBatchId;
-                 changed = true;
-             }
+            if (pr.project === projectName && pr.approved && !pr.version && !pr.versionBatchId) {
+                pr.versionRequested = true;
+                pr.versionBatchId = newBatchId;
+                changed = true;
+            }
         });
 
         if (changed) {
@@ -576,25 +587,32 @@ window.requestVersion = async (projectName) => {
     }
 };
 
-window.confirmDeploy = async (projectName) => {
-    // Release to STG
+window.confirmDeploy = async (prId) => {
+    const referencePr = currentData.prs.find(p => p.id === prId);
+    if (!referencePr) {
+        DOM.showToast('PR não encontrado.', 'error');
+        return;
+    }
+    
+    const projectName = referencePr.project;
+    
     if (confirm(`Confirmar liberação de "${projectName}" para ambiente de Teste (STG)?`)) {
         
         const sprintName = prompt("Informe a SPRINT desta liberação (ex: Sprint 143):", "Sprint ");
         if (!sprintName || sprintName.trim() === "Sprint" || sprintName.trim() === "") {
-             DOM.showToast('Liberação cancelada: Sprint é obrigatória.', 'info');
-             return;
+            DOM.showToast('Liberação cancelada: Sprint é obrigatória.', 'info');
+            return;
         }
 
         let changed = false;
         
         currentData.prs.forEach(pr => {
-             if (pr.project === projectName && pr.approved && pr.version && !pr.deployedToStg) {
-                 pr.deployedToStg = true;
-                 pr.deployedToStgAt = new Date().toISOString();
-                 pr.sprint = sprintName.trim();
-                 changed = true;
-             }
+            if (pr.project === projectName && pr.approved && pr.version && !pr.deployedToStg) {
+                pr.deployedToStg = true;
+                pr.deployedToStgAt = new Date().toISOString();
+                pr.sprint = sprintName.trim();
+                changed = true;
+            }
         });
 
         if (changed) {
@@ -606,12 +624,12 @@ window.confirmDeploy = async (projectName) => {
                 DOM.showToast(`Versão liberada para Teste (STG) na ${sprintName}!`);
                 DOM.renderTable(currentData.prs, openEditModal);
             } catch (error) {
-                 DOM.showToast('Erro ao liberar versão: ' + error.message, 'error');
+                DOM.showToast('Erro ao liberar versão: ' + error.message, 'error');
             } finally {
                 DOM.showLoading(false);
             }
         } else {
-             DOM.showToast('Nenhum PR pendente para liberar neste grupo.', 'info');
+            DOM.showToast('Nenhum PR pendente para liberar neste grupo.', 'info');
         }
     }
 };
@@ -622,20 +640,18 @@ function showErrorModal(friendlyMsg, error) {
     
     document.getElementById('errorFriendlyMessage').textContent = friendlyMsg;
     
-    // Prepare stack trace or error details
     const stack = error?.stack || error?.message || 'Detalhes indisponíveis.';
     document.getElementById('errorStack').textContent = stack;
     
     modal.style.display = 'flex';
     
-    // Ensure close buttons work
     const closeBtns = modal.querySelectorAll('.close-modal');
     closeBtns.forEach(btn => {
         btn.onclick = () => modal.style.display = 'none';
     });
 }
 
-window.createGitLabIssue = async (projectName) => {
+window.createGitLabIssue = async (prId) => {
     const token = LocalStorage.getItem('gitlabToken');
     if (!token) {
         DOM.showToast('Configure o token do GitLab para continuar.', 'error');
@@ -644,31 +660,35 @@ window.createGitLabIssue = async (projectName) => {
         return;
     }
 
-    const prs = currentData.prs.filter(p => p.project === projectName && p.approved);
-    if (!prs.length) return;
+    const referencePr = currentData.prs.find(p => p.id === prId);
+    if (!referencePr) {
+        DOM.showToast('PR não encontrado.', 'error');
+        return;
+    }
 
-    const info = prs[0];
-    
-    if (!info.version) {
+    if (!referencePr.version) {
         DOM.showToast('Nenhuma versão definida para este grupo.', 'error');
         return;
     }
 
     const data = {
-        modulo: projectName,
-        versao: info.version,
-        pipeline_url: info.pipelineLink || 'N/A',
-        rollback: info.rollback
+        modulo: referencePr.project,
+        versao: referencePr.version,
+        pipeline_url: referencePr.pipelineLink || 'N/A',
+        rollback: referencePr.rollback
     };
 
-    if (confirm(`Criar issue de deploy no GitLab para "${projectName} - ${info.version}"?`)) {
+    if (confirm(`Criar issue de deploy no GitLab para "${referencePr.project} - ${referencePr.version}"?`)) {
         try {
             DOM.showLoading(true);
             let result = await GitLabService.createIssue(token, data);
             
-            // Only update link if successful
             currentData.prs.forEach(pr => {
-                if (pr.project === projectName && pr.approved) {
+                let isSameProject = pr.project === referencePr.project;
+                let isApproved = pr.approved;
+                let isSameVersionBatch = pr.versionBatchId === referencePr.versionBatchId;
+                
+                if (isSameProject && isApproved && isSameVersionBatch) {
                     pr.gitlabIssueLink = result.web_url;
                 }
             });

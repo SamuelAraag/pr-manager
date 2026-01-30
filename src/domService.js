@@ -433,7 +433,7 @@ function createApprovedCard(projectName, projectPrs, currentUser, batchId) {
             // Show Deploy Button if Issue Link Exists
             if (currentUser === 'Samuel Santos') {
                     deployBtn = `
-                    <button class="btn" style="background-color: #8e44ad; color: white; padding: 0.3rem 0.6rem; font-size: 0.75rem; margin-left: 10px; display: inline-flex; align-items: center; gap: 5px; border-radius: 4px;" onclick="window.confirmDeploy('${projectName}')">
+                    <button class="btn" style="background-color: #8e44ad; color: white; padding: 0.3rem 0.6rem; font-size: 0.75rem; margin-left: 10px; display: inline-flex; align-items: center; gap: 5px; border-radius: 4px;" onclick="window.confirmDeploy('${projectPrs[0].id}')">
                         <i data-lucide="rocket" style="width: 14px;"></i>
                         Liberar STG
                     </button>
@@ -468,7 +468,7 @@ function createApprovedCard(projectName, projectPrs, currentUser, batchId) {
             const info = projectPrs.find(p => p.version);
             if (!info.gitlabIssueLink) {
             leftContent += `
-                <button class="btn" style="background-color: #6C5CE7; color: white; padding: 0.3rem 0.8rem; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; margin-left: 15px;" onclick="window.createGitLabIssue('${projectName}')">
+                <button class="btn" style="background-color: #6C5CE7; color: white; padding: 0.3rem 0.8rem; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; margin-left: 15px;" onclick="window.createGitLabIssue('${projectPrs[0].id}')">
                     <i data-lucide="gitlab" style="width: 14px;"></i>
                     Criar Chamado
                 </button>`;
@@ -481,7 +481,7 @@ function createApprovedCard(projectName, projectPrs, currentUser, batchId) {
     let requestVersionBtn = '';
     if (!hasVersionInfo && !isRequestingVersion) {
             requestVersionBtn = `
-            <button class="btn btn-primary" style="padding: 0.3rem 0.8rem; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; margin-left:15px;" onclick="window.requestVersion('${projectName}')">
+            <button class="btn btn-primary" style="padding: 0.3rem 0.8rem; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; margin-left:15px;" onclick="window.requestVersion('${projectPrs[0].id}')">
                 <i data-lucide="package-check" style="width: 14px;"></i>
                 Solicitar Versão
             </button>`;
