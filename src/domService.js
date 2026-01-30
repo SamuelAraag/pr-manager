@@ -401,7 +401,7 @@ function createApprovedCard(projectName, projectPrs, currentUser, batchId) {
                     <input type="text" placeholder="Versão (ex: 1.0.0)" class="version-input-group" id="v_ver_${uniqueKey}" style="font-size:0.85rem; padding:0.4rem;">
                     <input type="url" placeholder="Pipeline Link" class="version-input-group" id="v_pipe_${uniqueKey}" style="font-size:0.85rem; padding:0.4rem;">
                     <input type="text" placeholder="Rollback" class="version-input-group" id="v_roll_${uniqueKey}" style="font-size:0.85rem; padding:0.4rem;">
-                    <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size:0.8rem;" onclick="window.saveGroupVersion('${projectName}', '${batchId}')">Salvar</button>
+                    <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size:0.8rem;" onclick="window.saveGroupVersion('${batchId}')">Salvar</button>
                 </div>`;
         } else {
             leftContent += ` <span style="font-size:0.75rem; margin-left:10px; color:#ff7b72;">(Aguardando: ${majorityDev})</span>`;

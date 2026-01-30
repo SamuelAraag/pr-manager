@@ -3,6 +3,7 @@ import * as API from './apiService.js';
 import * as DOM from './domService.js';
 import { GitLabService } from './gitlabService.js';
 import { EffectService } from './effectService.js';
+import { IdService } from './idService.js';
 
 let currentData = { prs: [] };
 let currentSha = null;
@@ -318,7 +319,7 @@ prForm.addEventListener('submit', async (e) => {
     }
 
     const pr = {
-        id: prId || Date.now().toString(),
+        id: prId || IdService.generateUniqueId(IdService.extractIds(currentData.prs)),
         project: document.getElementById('project').value,
         dev: devInputForForm.value,
         summary: document.getElementById('summary').value,
@@ -366,18 +367,18 @@ prForm.addEventListener('submit', async (e) => {
     }
 });
 
-window.saveGroupVersion = async (projectName, batchId) => {
-    // Escaped name logic works for ID generation, but we rely on batchId for logic now
-    const escapedName = projectName.replace(/\s/g, '');
-    const uniqueId = batchId || escapedName; // Fallback for safety
+
+window.saveGroupVersion = async (batchId) => {
+    // We rely solely on batchId for looking up DOM elements and Data
+    const uniqueId = batchId;
     
-    // Get Elements using batchId if available to ensure uniqueness in DOM
+    // Get Elements using batchId
     const elVersion = document.getElementById(`v_ver_${uniqueId}`);
     const elPipeline = document.getElementById(`v_pipe_${uniqueId}`);
     const elRollback = document.getElementById(`v_roll_${uniqueId}`);
 
     if (!elVersion || !elPipeline || !elRollback) {
-        DOM.showToast('Erro interno: Campos de formulário não encontrados.', 'error');
+        DOM.showToast('Erro interno: Campos de formulário não encontrados (ID mismatch).', 'error');
         return;
     }
 
@@ -410,7 +411,6 @@ window.saveGroupVersion = async (projectName, batchId) => {
     }
 
     // Version Regex Validation
-    // Example: 26.01.30.428
     const versionRegex = /^\d+\.\d+\.\d+\.\d+$/;
     
     if (!versionRegex.test(version)) {
@@ -425,12 +425,21 @@ window.saveGroupVersion = async (projectName, batchId) => {
         return;
     }
 
-    if (confirm(`Aplicar versão ${version} para este lote de PRs de "${projectName}"?`)) {
+    // Find the PRs for this batch to get project name and confirm
+    const batchPrs = currentData.prs.filter(pr => pr.versionBatchId === batchId && pr.approved);
+    
+    if (batchPrs.length === 0) {
+        DOM.showToast('Nenhum PR encontrado para este lote.', 'error');
+        return;
+    }
+
+    const projectName = batchPrs[0].project; // Derive project name from data
+
+    if (confirm(`Aplicar versão ${version} para este lote de ${batchPrs.length} PRs de "${projectName}"?`)) {
         let changed = false;
         
         currentData.prs.forEach(pr => {
-            // Target specific batch
-            if (pr.project === projectName && pr.approved && pr.versionBatchId === batchId) {
+            if (pr.versionBatchId === batchId && pr.approved) {
                 pr.version = version;
                 pr.pipelineLink = pipeline;
                 pr.rollback = rollback;
@@ -465,7 +474,9 @@ window.requestVersion = async (projectName) => {
 
     if (confirm(`Solicitar versão para ${prs.length} PRs de "${projectName}"?`)) {
         let changed = false;
-        const newBatchId = Date.now().toString();
+        // Generate Unique Batch ID
+        const existingIds = IdService.extractIds(currentData.prs, 'versionBatchId');
+        const newBatchId = IdService.generateUniqueId(existingIds, 10);
         
         currentData.prs.forEach(pr => {
              // Checking exact same conditions to be safe
