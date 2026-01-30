@@ -5,7 +5,7 @@ import { GitLabService } from './gitlabService.js';
 
 let currentData = { prs: [] };
 let currentSha = null;
-const validDevs = ['Rodrigo Barbosa', 'Itallo Cerqueira', 'Marcos Paulo', 'Samuel Santos'];
+const validDevs = ['Rodrigo Barbosa', 'Itallo Cerqueira', 'Marcos Paulo', 'Samuel Santos', 'Kemilly Alvez'];
 
 const prModal = document.getElementById('prModal');
 const setupModal = document.getElementById('setupModal');
@@ -84,7 +84,8 @@ function openSetupModal() {
 function updateUserDisplay(userName) {
     const profileImages = {
         'Itallo Cerqueira': 'src/assets/profiles/itallo-cerqueira.jpeg',
-        'Rodrigo Barbosa': 'src/assets/profiles/rodrigo-barbosa.jpeg'
+        'Rodrigo Barbosa': 'src/assets/profiles/rodrigo-barbosa.jpeg',
+        'Kemilly Alvez': 'src/assets/profiles/kemilly-alvez.jpeg'
     };
 
     const imageSrc = profileImages[userName] || 'src/assets/profiles/default-profile.png';
