@@ -54,7 +54,6 @@ window.addEventListener('keydown', (e) => {
             if (previousUser && previousUser !== adminUser) {
                 LocalStorage.setItem('appUser', previousUser);
                 updateUserDisplay(previousUser);
-                DOM.showToast(`Voltando para: ${previousUser}`);
                 loadData();
             } else {
                 DOM.showToast('Nenhum usuário anterior encontrado.', 'error');
@@ -129,6 +128,12 @@ function updateUserDisplay(userName) {
         document.documentElement.style.setProperty('--admin-display', 'flex');
     } else {
         document.documentElement.style.setProperty('--admin-display', 'none');
+    }
+
+    // Show/hide setup button - only admin can configure tokens
+    const setupBtn = document.getElementById('setupBtn');
+    if (setupBtn) {
+        setupBtn.style.display = userName === 'Samuel Santos' ? 'inline-flex' : 'none';
     }
 }
 
@@ -378,35 +383,40 @@ prForm.addEventListener('submit', async (e) => {
         return;
     }
 
-    const pr = {
-        id: prId || IdService.generateUniqueId(IdService.extractIds(currentData.prs)),
-        project: document.getElementById('project').value,
-        dev: devInputForForm.value,
-        summary: document.getElementById('summary').value,
-        prLink: document.getElementById('prLink').value,
-        taskLink: document.getElementById('taskLink').value,
-        teamsLink: document.getElementById('teamsLink').value,
-        reqVersion: 'ok',
-        approved: prId ? (currentData.prs.find(p => p.id === prId)?.approved || false) : false,
-        updatedAt: new Date().toISOString()
-    };
-
-    const newData = { 
-        ...currentData,
-        prs: [...currentData.prs]
-    };
-
-    if (prId) {
-        const index = newData.prs.findIndex(p => p.id === prId);
-        if (index !== -1) {
-            newData.prs[index] = pr;
-        }
-    } else {
-        newData.prs.push(pr);
-    }
-
     try {
         DOM.showLoading(true);
+        
+        await loadData();
+        
+        const prId = document.getElementById('prId').value;
+
+        const pr = {
+            id: prId || IdService.generateUniqueId(IdService.extractIds(currentData.prs)),
+            project: document.getElementById('project').value,
+            dev: devInputForForm.value,
+            summary: document.getElementById('summary').value,
+            prLink: document.getElementById('prLink').value,
+            taskLink: document.getElementById('taskLink').value,
+            teamsLink: document.getElementById('teamsLink').value,
+            reqVersion: 'ok',
+            approved: prId ? (currentData.prs.find(p => p.id === prId)?.approved || false) : false,
+            updatedAt: new Date().toISOString()
+        };
+
+        const newData = { 
+            ...currentData,
+            prs: [...currentData.prs]
+        };
+
+        if (prId) {
+            const index = newData.prs.findIndex(p => p.id === prId);
+            if (index !== -1) {
+                newData.prs[index] = pr;
+            }
+        } else {
+            newData.prs.push(pr);
+        }
+
         console.log('Tentando salvar PR:', pr);
         console.log('SHA atual:', currentSha);
         
@@ -606,8 +616,26 @@ window.confirmDeploy = async (projectName) => {
     }
 };
 
+function showErrorModal(friendlyMsg, error) {
+    const modal = document.getElementById('errorModal');
+    if (!modal) return;
+    
+    document.getElementById('errorFriendlyMessage').textContent = friendlyMsg;
+    
+    // Prepare stack trace or error details
+    const stack = error?.stack || error?.message || 'Detalhes indisponíveis.';
+    document.getElementById('errorStack').textContent = stack;
+    
+    modal.style.display = 'flex';
+    
+    // Ensure close buttons work
+    const closeBtns = modal.querySelectorAll('.close-modal');
+    closeBtns.forEach(btn => {
+        btn.onclick = () => modal.style.display = 'none';
+    });
+}
+
 window.createGitLabIssue = async (projectName) => {
-    // ... existing code ...
     const token = LocalStorage.getItem('gitlabToken');
     if (!token) {
         DOM.showToast('Configure o token do GitLab para continuar.', 'error');
@@ -650,7 +678,7 @@ window.createGitLabIssue = async (projectName) => {
             DOM.renderTable(currentData.prs, openEditModal);
         } catch (error) {
             console.error(error);
-            DOM.showToast('Erro ao criar chamado: ' + error.message, 'error');
+            showErrorModal('Ocorreu um erro ao tentar criar o chamado no GitLab. Verifique o token e a conexão.', error);
         } finally {
             DOM.showLoading(false);
         }
