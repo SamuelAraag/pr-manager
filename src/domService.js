@@ -45,7 +45,7 @@ function renderOpenTable(data, containerId, onEdit) {
 
     projectNames.forEach(projectName => {
         const projectPrs = grouped[projectName];
-        const headerContent = `${projectName} <span class="badge">${projectPrs.length}</span>`;
+        const headerContent = `${projectName}`;
 
         const headerRow = document.createElement('tr');
         headerRow.className = 'group-header';
@@ -115,7 +115,7 @@ function renderApprovedTables(data, containerId, onEdit) {
         
         // Header Logic
         let headerStyle = '';
-        let leftContent = `${projectName} <span class="badge">${projectPrs.length}</span>`;
+        let leftContent = `${projectName}`;
         let rightContent = '';
         let versionInputs = '';
         
