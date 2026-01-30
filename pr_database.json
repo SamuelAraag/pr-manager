@@ -18,7 +18,7 @@
       "pipelineLink": "https://bitbucket.org/invent-software/taxplus.dfe/pipelines/results/428/steps/%7Be0e70815-5f23-4d7d-95eb-9148533ac1be%7D",
       "rollback": "26.01.29.34",
       "versionGroupStatus": "done",
-      "gitlabIssueLink": "https://gitlab.com/invent-software/pmo/service-desk/-/issues/938",
+      "gitlabIssueLink": "https://gitlab.com/invent-software/pmo/service-desk/-/issues/949",
       "deployedToStg": true,
       "deployedToStgAt": "2026-01-30T17:00:42.073Z",
       "sprint": "Sprint 27"
@@ -282,7 +282,8 @@
       "version": "12.123.123.1233",
       "pipelineLink": "http://127.0.0.1:5500/",
       "rollback": "123.23.2.23",
-      "versionGroupStatus": "done"
+      "versionGroupStatus": "done",
+      "gitlabIssueLink": "https://gitlab.com/invent-software/pmo/service-desk/-/issues/949"
     },
     {
       "id": "friiNYgg",
@@ -297,5 +298,5 @@
       "updatedAt": "2026-01-30T22:45:08.328Z"
     }
   ],
-  "last_updated": "2026-01-30T23:02:23.976Z"
+  "last_updated": "2026-01-30T23:11:18.611Z"
 }
