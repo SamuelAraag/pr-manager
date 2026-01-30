@@ -59,7 +59,6 @@ function renderGroupedTable(data, containerId, onEdit, isApprovedTable = false) 
             if (hasVersionInfo) {
                 const info = projectPrs.find(p => p.version);
                 
-                debugger
                 let gitlabLink = '';
                 if (info.gitlabIssueLink) {
                      gitlabLink = `
