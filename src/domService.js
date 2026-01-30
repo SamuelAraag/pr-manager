@@ -48,12 +48,35 @@ function renderGroupedTable(data, containerId, onEdit, isApprovedTable = false) 
         const isRequestingVersion = projectPrs.some(p => p.versionRequested);
         
         let headerStyle = '';
-        let headerContent = `${projectName} <span class="badge">${projectPrs.length}</span>`;
+        let leftContent = `${projectName} <span class="badge">${projectPrs.length}</span>`;
+        let rightContent = '';
         let versionInputs = '';
 
         if (isApprovedTable) {
             const hasVersionInfo = projectPrs.some(p => p.version);
             const currentUser = getItem('appUser');
+            
+            if (hasVersionInfo) {
+                const info = projectPrs.find(p => p.version);
+                
+                debugger
+                let gitlabLink = '';
+                if (info.gitlabIssueLink) {
+                     gitlabLink = `
+                        <a href="${info.gitlabIssueLink}" target="_blank" class="btn" style="background-color: #FC6D26; color: white; padding: 0.2rem 0.6rem; font-size: 0.75rem; margin-left: 10px; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; border-radius: 4px;">
+                            <i data-lucide="gitlab" style="width: 14px;"></i>
+                            Ver Chamado
+                        </a>
+                    `;
+                }
+
+                rightContent += ` 
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span class="tag" style="background:#238636; color:white;">v${info.version}</span>
+                        ${gitlabLink}
+                    </div>
+                `;
+            }
 
             if (isRequestingVersion) {
                 const devCounts = projectPrs.reduce((acc, pr) => {
@@ -65,7 +88,7 @@ function renderGroupedTable(data, containerId, onEdit, isApprovedTable = false) 
     
                 if (currentUser === majorityDev) {
                     headerStyle = 'background-color: rgba(218, 54, 51, 0.2); border-left: 4px solid #da3633; color: #ff7b72;';
-                    headerContent += ` <span style="font-size:0.75rem; margin-left:10px; color:#ff7b72;">(Ação Necessária: Versão)</span>`;
+                    leftContent += ` <span style="font-size:0.75rem; margin-left:10px; color:#ff7b72;">(Ação Necessária: Versão)</span>`;
                     
                     versionInputs = `
                         <div style="margin-top: 10px; display: flex; gap: 10px; align-items: center;">
@@ -76,17 +99,20 @@ function renderGroupedTable(data, containerId, onEdit, isApprovedTable = false) 
                         </div>
                     `;
                 } else {
-                    headerContent += ` <span style="font-size:0.75rem; margin-left:10px; color:var(--text-secondary);">(Aguardando: ${majorityDev})</span>`;
+                    leftContent += ` <span style="font-size:0.75rem; margin-left:10px; color:var(--text-secondary);">(Aguardando: ${majorityDev})</span>`;
                 }
             } else if (hasVersionInfo && currentUser === 'Samuel Santos') {
-                 versionInputs = `
-                    <div style="margin-top: 5px; display: flex; align-items: center;">
-                        <button class="btn" style="background-color: #6C5CE7; color: white; padding: 0.3rem 0.8rem; font-size: 0.75rem; display: flex; align-items: center; gap: 5px;" onclick="window.createGitLabIssue('${projectName}')">
+                 // Only show button if issue link doesn't exist yet
+                 const info = projectPrs.find(p => p.version);
+                 if (!info.gitlabIssueLink) {
+                    // Render button in leftContent (Keep it here as requested)
+                    leftContent += `
+                        <button class="btn" style="background-color: #6C5CE7; color: white; padding: 0.3rem 0.8rem; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; margin-left: 15px;" onclick="window.createGitLabIssue('${projectName}')">
                             <i data-lucide="gitlab" style="width: 14px;"></i>
                             Criar Chamado
                         </button>
-                    </div>
-                `;
+                    `;
+                 }
             }
         }
 
@@ -94,10 +120,14 @@ function renderGroupedTable(data, containerId, onEdit, isApprovedTable = false) 
         headerRow.className = 'group-header';
         if (headerStyle) headerRow.style.cssText = headerStyle;
         
+        // colspan reduced to 5 for approved table (Project, Summary, Dev, Req, Links)
+        const colSpan = isApprovedTable ? 5 : 8;
+
         headerRow.innerHTML = `
-            <td colspan="8">
+            <td colspan="${colSpan}">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>${headerContent}</div>
+                    <div style="display:flex; align-items:center;">${leftContent}</div>
+                    <div>${rightContent}</div>
                 </div>
                 ${versionInputs}
             </td>
@@ -116,33 +146,37 @@ function renderGroupedTable(data, containerId, onEdit, isApprovedTable = false) 
                 `;
             }
 
-            tr.innerHTML = `
-                <td><span class="tag">${pr.project || '-'}</span></td>
-                <td style="font-weight: 500;">${pr.summary || '-'}</td>
-                <td>${pr.dev || '-'}</td>
-                ${isApprovedTable ? `
-                <td>
-                    <div style="font-size: 0.85rem;">
-                        <span style="color: #aff5b4;">${pr.version || '-'}</span>
-                    </div>
-                </td>
-                <td>
-                    <div style="font-size: 0.85rem;">
-                         ${pr.rollback ? `<small style="color: #ffa198;">${pr.rollback}</small>` : '-'}
-                    </div>
-                </td>` : ''}
-                <td><span class="status-badge" style="background: ${pr.reqVersion === 'ok' ? '#238636' : '#30363d'}">${pr.reqVersion || '-'}</span></td>
-                <td>
-                    <div style="display: flex; gap: 0.8rem;">
-                        ${pr.taskLink ? `<a href="${pr.taskLink}" target="_blank" class="link-icon" title="Link Task"><i data-lucide="external-link" style="width: 16px;"></i></a>` : ''}
-                        ${pr.prLink ? `<a href="${pr.prLink}" target="_blank" class="link-icon" title="Link PR"><i data-lucide="git-pull-request" style="width: 16px;"></i></a>` : ''}
-                        ${pr.gitlabIssueLink ? `<a href="${pr.gitlabIssueLink}" target="_blank" class="link-icon" title="Issue GitLab" style="color: #FC6D26;"><i data-lucide="gitlab" style="width: 16px;"></i></a>` : ''}
-                    </div>
-                </td>
-                <td>
-                    ${actionContent}
-                </td>
-            `;
+            // Simplified Row for Approved Table
+            if (isApprovedTable) {
+                tr.innerHTML = `
+                    <td><span class="tag">${pr.project || '-'}</span></td>
+                    <td style="font-weight: 500;">${pr.summary || '-'}</td>
+                    <td>${pr.dev || '-'}</td>
+                    <td><span class="status-badge" style="background: ${pr.reqVersion === 'ok' ? '#238636' : '#30363d'}">${pr.reqVersion || '-'}</span></td>
+                    <td>
+                        <div style="display: flex; gap: 0.8rem;">
+                            ${pr.taskLink ? `<a href="${pr.taskLink}" target="_blank" class="link-icon" title="Link Task"><i data-lucide="external-link" style="width: 16px;"></i></a>` : ''}
+                            ${pr.prLink ? `<a href="${pr.prLink}" target="_blank" class="link-icon" title="Link PR"><i data-lucide="git-pull-request" style="width: 16px;"></i></a>` : ''}
+                        </div>
+                    </td>
+                `;
+            } else {
+                tr.innerHTML = `
+                    <td><span class="tag">${pr.project || '-'}</span></td>
+                    <td style="font-weight: 500;">${pr.summary || '-'}</td>
+                    <td>${pr.dev || '-'}</td>
+                    <td><span class="status-badge" style="background: ${pr.reqVersion === 'ok' ? '#238636' : '#30363d'}">${pr.reqVersion || '-'}</span></td>
+                    <td>
+                        <div style="display: flex; gap: 0.8rem;">
+                            ${pr.taskLink ? `<a href="${pr.taskLink}" target="_blank" class="link-icon" title="Link Task"><i data-lucide="external-link" style="width: 16px;"></i></a>` : ''}
+                            ${pr.prLink ? `<a href="${pr.prLink}" target="_blank" class="link-icon" title="Link PR"><i data-lucide="git-pull-request" style="width: 16px;"></i></a>` : ''}
+                        </div>
+                    </td>
+                    <td>
+                        ${actionContent}
+                    </td>
+                `;
+            }
 
             if (!isApprovedTable) {
                 const editBtn = tr.querySelector('.edit-btn');

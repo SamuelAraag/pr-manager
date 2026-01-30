@@ -141,6 +141,7 @@ function updateReqVersionButton() {
         btn.classList.remove('btn-outline');
         btn.style.opacity = '1';
         btn.style.cursor = 'pointer';
+        if (window.lucide) window.lucide.createIcons();
     }
 }
 
