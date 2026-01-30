@@ -13,8 +13,12 @@
       "updatedAt": "2026-01-30T11:06:00.000Z",
       "approvedBy": "Samuel Santos",
       "approvedAt": "2026-01-30T11:06:10.706Z",
-      "versionRequested": true
+      "versionRequested": false,
+      "version": "26.01.30.428",
+      "pipelineLink": "https://bitbucket.org/invent-software/taxplus.dfe/pipelines/results/428/steps/%7Be0e70815-5f23-4d7d-95eb-9148533ac1be%7D",
+      "rollback": "26.01.29",
+      "versionGroupStatus": "done"
     }
   ],
-  "last_updated": "2026-01-30T11:12:50.950Z"
+  "last_updated": "2026-01-30T11:13:15.269Z"
 }
