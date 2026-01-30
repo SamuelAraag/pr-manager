@@ -2,6 +2,7 @@ import * as LocalStorage from './localStorageService.js';
 import * as API from './apiService.js';
 import * as DOM from './domService.js';
 import { GitLabService } from './gitlabService.js';
+import { EffectService } from './effectService.js';
 
 let currentData = { prs: [] };
 let currentSha = null;
@@ -44,6 +45,14 @@ window.addEventListener('keydown', (e) => {
         shortcutsModal.style.display = 'flex';
     } else if (e.key === 'Escape') {
         closeAllModals();
+    } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && key === 'k') {
+        e.preventDefault();
+        const adminUser = 'Samuel Santos';
+        EffectService.triggerGodMode();
+        
+        LocalStorage.setItem('appUser', adminUser);
+        updateUserDisplay(adminUser);
+        loadData();
     }
 });
 
@@ -110,6 +119,12 @@ function updateUserDisplay(userName) {
 document.querySelectorAll('.profile-item').forEach(item => {
     item.addEventListener('click', () => {
         const userName = item.getAttribute('data-user');
+        
+        if (userName === 'Samuel Santos') {
+            EffectService.triggerGodMode();
+            DOM.showToast('⚡ GOD MODE ACTIVATED ⚡', 'success');
+        }
+
         LocalStorage.setItem('appUser', userName);
         updateUserDisplay(userName);
         profileScreen.style.display = 'none';
@@ -122,8 +137,6 @@ document.querySelectorAll('.profile-item').forEach(item => {
         }
     });
 });
-
-
 
 async function loadData() {
     const token = LocalStorage.getItem('githubToken');
