@@ -19,7 +19,7 @@ function getConfig() {
 function getHeaders() {
     const token = getItem('githubToken');
     return {
-        'Authorization': `token ${token}`,
+        'Authorization': `Bearer ${token}`,
         'Accept': 'application/vnd.github.v3+json',
         'Content-Type': 'application/json'
     };
@@ -43,7 +43,8 @@ async function fetchPRs() {
         }
         
         const fileData = await response.json();
-        const decodedContent = decodeURIComponent(atob(fileData.content));
+        // Modern and safe way to decode base64 utf-8
+        const decodedContent = decodeURIComponent(escape(atob(fileData.content.replace(/\s/g, ''))));
 
         if (decodedContent.trim() === '') {
             return { sha: fileData.sha, data: { prs: [] } };

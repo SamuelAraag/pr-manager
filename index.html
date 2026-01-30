@@ -69,9 +69,13 @@
                 <p>Buscando dados no GitHub...</p>
             </div>
 
-            <div id="dashboard" class="data-card">
+            <!-- PRs Em Aberto -->
+            <h3
+                style="margin-bottom: 1rem; color: var(--text-primary); border-left: 4px solid var(--accent-color); padding-left: 10px;">
+                PRs em Aberto</h3>
+            <div id="dashboard" class="data-card" style="margin-bottom: 3rem;">
                 <div class="table-container">
-                    <table id="prTable">
+                    <table id="openPrTable">
                         <thead>
                             <tr>
                                 <th>Projeto</th>
@@ -84,11 +88,43 @@
                                 <th>Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="prTableBody">
+                        <tbody id="openPrTableBody">
                             <!-- Items will be injected here -->
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            <!-- PRs Aprovados -->
+            <h3
+                style="margin-bottom: 1rem; color: var(--text-primary); border-left: 4px solid var(--success-color); padding-left: 10px;">
+                PRs Aprovados</h3>
+            <div id="dashboardApproved" class="data-card">
+                <div class="table-container">
+                    <table id="approvedPrTable">
+                        <thead>
+                            <tr>
+                                <th>Projeto</th>
+                                <th>Resumo</th>
+                                <th>Rev</th>
+                                <th>Dev</th>
+                                <th>Versão</th>
+                                <th>Solicitada</th>
+                                <th>Links</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="approvedPrTableBody">
+                            <!-- Items will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div style="text-align: right; margin-top: 1rem; display: flex; justify-content: flex-end;">
+                <button id="reqVersionBtn" class="btn btn-primary">
+                    <i data-lucide="package-check"></i> Solicitar Versão
+                </button>
             </div>
         </main>
     </div>
@@ -200,6 +236,13 @@
                     <div class="form-group">
                         <label>Post no Teams</label>
                         <input type="url" id="teamsLink" placeholder="Link da mensagem">
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label> <!-- Empty label for alignment -->
+                        <button type="button" id="approveBtn" class="btn"
+                            style="display: none; background: #238636; color: white; width: 100%; justify-content: center; height: 42px; border: 1px solid #2ea043;"
+                            title="Aprovar PR">Aprovar PR
+                        </button>
                     </div>
                     <div class="form-group full-width"
                         style="margin: 1rem 0; padding-top: 1rem; border-top: 1px solid var(--border-color);">

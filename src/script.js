@@ -17,6 +17,7 @@ const generateVersionCheckbox = document.getElementById('generateVersion');
 const versionSection = document.getElementById('versionSection');
 const profileScreen = document.getElementById('profileScreen');
 const currentUserDisplay = document.getElementById('currentUserDisplay');
+const approveBtn = document.getElementById('approveBtn');
 
 // Keyboard Shortcuts
 window.addEventListener('keydown', (e) => {
@@ -86,6 +87,13 @@ function showProfileSelection() {
 function updateUserDisplay(userName) {
     const initials = userName.split(' ').map(n => n[0]).join('');
     currentUserDisplay.textContent = initials;
+
+    // Show/Hide Verify Button based on user
+    if (userName === 'Samuel Santos') {
+        document.documentElement.style.setProperty('--admin-display', 'flex');
+    } else {
+        document.documentElement.style.setProperty('--admin-display', 'none');
+    }
 }
 
 // Profile Selection Event
@@ -144,6 +152,26 @@ function openEditModal(pr) {
     generateVersionCheckbox.checked = hasVersion;
     versionSection.style.display = hasVersion ? 'grid' : 'none';
     
+    // Handle Approval State
+    const appUser = LocalStorage.getItem('appUser');
+    const isSamuel = appUser === 'Samuel Santos';
+    const isApproved = !!pr.approved;
+
+    // Show Approve Button ONLY if: It's Samuel AND Not Approved yet
+    approveBtn.style.display = (isSamuel && !isApproved) ? 'block' : 'none';
+
+    // Lock fields if approved
+    const fieldsToLock = ['project', 'dev', 'summary', 'prLink', 'taskLink', 'teamsLink'];
+    fieldsToLock.forEach(id => {
+        document.getElementById(id).disabled = isApproved;
+    });
+
+    if (isApproved) {
+        document.getElementById('modalTitle').innerHTML = 'Editar Pull Request <span class="tag" style="background:#238636; color:white; margin-left:10px;">Aprovado</span>';
+    } else {
+        document.getElementById('modalTitle').textContent = 'Editar Pull Request';
+    }
+
     prModal.style.display = 'flex';
 }
 
@@ -161,6 +189,13 @@ function openAddModal() {
     // Reset version section
     generateVersionCheckbox.checked = false;
     versionSection.style.display = 'none';
+
+    // Reset Lock
+    approveBtn.style.display = 'none';
+    const fieldsToLock = ['project', 'dev', 'summary', 'prLink', 'taskLink', 'teamsLink'];
+    fieldsToLock.forEach(id => {
+        document.getElementById(id).disabled = false;
+    });
     
     prModal.style.display = 'flex';
 }
@@ -170,6 +205,43 @@ document.getElementById('addPrBtn').addEventListener('click', openAddModal);
 document.getElementById('setupBtn').addEventListener('click', () => setupModal.style.display = 'flex');
 document.getElementById('shortcutsBtn').addEventListener('click', () => shortcutsModal.style.display = 'flex');
 document.getElementById('changeUserBtn').addEventListener('click', showProfileSelection);
+
+// Approve PR Action
+approveBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const prId = document.getElementById('prId').value;
+    if (!prId) return;
+
+    if (confirm('Aprovar este PR? Os campos principais serão bloqueados.')) {
+        const index = currentData.prs.findIndex(p => p.id === prId);
+        if (index !== -1) {
+            currentData.prs[index].approved = true;
+            currentData.prs[index].approvedBy = 'Samuel Santos';
+            currentData.prs[index].approvedAt = new Date().toISOString();
+            
+            // Re-open/Refresh modal logic to apply lock visual immediately before saving?
+            // Or just save. Let's save.
+            
+            // We need to trigger a save. We can re-use the form submit logic or call API directly.
+            // Calling API directly is safer/cleaner here.
+            
+            try {
+                DOM.showLoading(true);
+                const result = await API.savePRs(currentData, currentSha);
+                currentData = result.newData;
+                currentSha = result.newSha;
+                
+                DOM.showToast('PR Aprovado com sucesso!');
+                prModal.style.display = 'none';
+                DOM.renderTable(currentData.prs, openEditModal);
+            } catch (error) {
+                DOM.showToast('Erro ao aprovar: ' + error.message, 'error');
+            } finally {
+                DOM.showLoading(false);
+            }
+        }
+    }
+});
 
 // Toggle version section
 generateVersionCheckbox.addEventListener('change', (e) => {
@@ -228,6 +300,7 @@ prForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const devInputForForm = document.getElementById('dev');
+    const prId = document.getElementById('prId').value;
 
     if (!validDevs.includes(devInputForForm.value)) {
         DOM.showToast('Por favor, selecione um desenvolvedor válido da lista.', 'error');
@@ -248,27 +321,40 @@ prForm.addEventListener('submit', async (e) => {
         rollback: document.getElementById('rollback').value,
         rev: prId ? (currentData.prs.find(p => p.id === prId)?.rev || false) : false,
         reqVersion: document.getElementById('reqVersion').value,
+        approved: prId ? (currentData.prs.find(p => p.id === prId)?.approved || false) : false,
         updatedAt: new Date().toISOString()
     };
 
-    const newData = { ...currentData };
+    const newData = { 
+        ...currentData,
+        prs: [...currentData.prs]
+    };
+
     if (prId) {
         const index = newData.prs.findIndex(p => p.id === prId);
-        if (index !== -1) newData.prs[index] = pr;
+        if (index !== -1) {
+            newData.prs[index] = pr;
+        }
     } else {
         newData.prs.push(pr);
     }
 
     try {
         DOM.showLoading(true);
+        console.log('Tentando salvar PR:', pr);
+        console.log('SHA atual:', currentSha);
+        
         const result = await API.savePRs(newData, currentSha);
+        
         currentData = result.newData;
         currentSha = result.newSha;
         
         DOM.renderTable(currentData.prs, openEditModal);
         DOM.showToast('Sucesso! Dados sincronizados no GitHub.');
         prModal.style.display = 'none';
+        prForm.reset();
     } catch (error) {
+        console.error('Erro detalhado ao salvar:', error);
         DOM.showToast('Erro ao salvar: ' + error.message, 'error');
     } finally {
         DOM.showLoading(false);
