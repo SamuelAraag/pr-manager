@@ -18,7 +18,7 @@
       "pipelineLink": "https://bitbucket.org/invent-software/taxplus.dfe/pipelines/results/428/steps/%7Be0e70815-5f23-4d7d-95eb-9148533ac1be%7D",
       "rollback": "26.01.29.34",
       "versionGroupStatus": "done",
-      "gitlabIssueLink": "https://gitlab.com/invent-software/pmo/service-desk/-/issues/938"
+      "gitlabIssueLink": "https://gitlab.com/invent-software/pmo/service-desk/-/issues/944"
     },
     {
       "id": "1769776131027",
@@ -58,7 +58,8 @@
       "version": "12.12.12.12",
       "pipelineLink": "https://asdf.com",
       "rollback": "23.23.23.23",
-      "versionGroupStatus": "done"
+      "versionGroupStatus": "done",
+      "gitlabIssueLink": "https://gitlab.com/invent-software/pmo/service-desk/-/issues/944"
     },
     {
       "id": "1769788253723",
@@ -74,8 +75,9 @@
       "approvedBy": "Samuel Santos",
       "approvedAt": "2026-01-30T15:51:04.772Z",
       "versionRequested": true,
-      "versionBatchId": "1769788284346"
+      "versionBatchId": "1769788284346",
+      "gitlabIssueLink": "https://gitlab.com/invent-software/pmo/service-desk/-/issues/944"
     }
   ],
-  "last_updated": "2026-01-30T15:51:24.347Z"
+  "last_updated": "2026-01-30T15:53:51.551Z"
 }
