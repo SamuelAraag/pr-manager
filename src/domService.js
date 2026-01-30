@@ -125,6 +125,7 @@ function renderTestingTable(data, containerId, onEdit) {
         headerContainer.appendChild(sprintTitle);
         if (completeBtn) {
             const btnContainer = document.createElement('div');
+            btnContainer.style.paddingRight = '15px';
             btnContainer.innerHTML = completeBtn;
             headerContainer.appendChild(btnContainer);
         }
