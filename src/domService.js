@@ -14,14 +14,22 @@ function showToast(message, type = 'success') {
 function renderTable(prs, onEdit) {
     const openPrs = prs.filter(p => !p.approved);
     
-    // Split approved into Pending Deploy (Approved Table) and Deployed (Testing Table)
+    // Split approved into:
+    // 1. Pending Deploy (Approved Table) -> approved && !deployedToStg
+    // 2. Active Testing (Testing Table) -> approved && deployedToStg && !sprintCompleted
+    // 3. History (History Table) -> approved && deployedToStg && sprintCompleted
+
     const approvedTotal = prs.filter(p => p.approved);
     const approvedPending = approvedTotal.filter(p => !p.deployedToStg);
-    const testingPrs = approvedTotal.filter(p => p.deployedToStg);
+    
+    const allDeployed = approvedTotal.filter(p => p.deployedToStg);
+    const activeTesting = allDeployed.filter(p => !p.sprintCompleted);
+    const historyPrs = allDeployed.filter(p => p.sprintCompleted);
 
     renderOpenTable(openPrs, 'openPrTableBody', onEdit);
     renderApprovedTables(approvedPending, 'dashboardApproved', onEdit);
-    renderTestingTable(testingPrs, 'dashboardTesting', onEdit);
+    renderTestingTable(activeTesting, 'dashboardTesting', onEdit);
+    renderHistoryTable(historyPrs, 'dashboardHistory', onEdit);
 
     if (window.lucide) {
         window.lucide.createIcons();
@@ -63,6 +71,225 @@ function renderOpenTable(data, containerId, onEdit) {
             const editBtn = tr.querySelector('.edit-btn');
             editBtn.addEventListener('click', () => onEdit(pr));
             body.appendChild(tr);
+        });
+    });
+}
+// ... renderApprovedTables (unchanged) ...
+
+function renderTestingTable(data, containerId, onEdit) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    
+    if (data.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary); background: #161b22; border: 1px solid #30363d; border-radius: 6px;">Nenhuma versão em teste (STG).</div>';
+        return;
+    }
+
+    // 1. Group by Sprint
+    const bySprint = data.reduce((acc, pr) => {
+        const sprint = pr.sprint || 'Outras Versões';
+        if (!acc[sprint]) acc[sprint] = [];
+        acc[sprint].push(pr);
+        return acc;
+    }, {});
+
+    const sprints = Object.keys(bySprint).sort().reverse();
+    const currentUser = getItem('appUser');
+
+    sprints.forEach(sprintName => {
+        // Sprint Header with Complete Config
+        const headerContainer = document.createElement('div');
+        headerContainer.style.display = 'flex';
+        headerContainer.style.justifyContent = 'space-between';
+        headerContainer.style.alignItems = 'center';
+        headerContainer.style.marginBottom = '1rem';
+        headerContainer.style.marginTop = '2rem';
+        headerContainer.style.borderBottom = '1px solid #30363d';
+        headerContainer.style.paddingBottom = '0.5rem';
+
+        const sprintTitle = document.createElement('h3');
+        sprintTitle.textContent = sprintName;
+        sprintTitle.style.cssText = 'color: var(--text-primary); margin: 0; padding-left: 15px; border-left: 4px solid #8e44ad; font-size: 1.1rem; opacity: 0.9;';
+        
+        let completeBtn = '';
+        if (currentUser === 'Samuel Santos') {
+             completeBtn = `
+                <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.8rem; border-color: #30363d; color: var(--text-secondary);" onclick="window.completeSprint('${sprintName}')">
+                    <i data-lucide="check-circle-2" style="width: 14px; margin-right: 5px;"></i>
+                    Concluir Sprint
+                </button>
+            `;
+        }
+
+        headerContainer.appendChild(sprintTitle);
+        if (completeBtn) {
+            const btnContainer = document.createElement('div');
+            btnContainer.innerHTML = completeBtn;
+            headerContainer.appendChild(btnContainer);
+        }
+
+        container.appendChild(headerContainer);
+
+        const projectPrsInSprint = bySprint[sprintName];
+
+        // 2. Group by Project-Version within Sprint
+        const byProjectVer = projectPrsInSprint.reduce((acc, pr) => {
+            const project = pr.project || 'Outros';
+            const key = `${project}-${pr.version}`; 
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(pr);
+            return acc;
+        }, {});
+        
+        const keys = Object.keys(byProjectVer).sort();
+
+        keys.forEach(key => {
+            const prs = byProjectVer[key];
+            const info = prs[0];
+            const project = info.project;
+            
+            let gitlabLink = '';
+            if (info.gitlabIssueLink) {
+                gitlabLink = `
+                    <a href="${info.gitlabIssueLink}" target="_blank" class="btn" style="background-color: #30363d; color: var(--text-secondary); padding: 0.2rem 0.6rem; font-size: 0.75rem; margin-left: 10px; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; border: 1px solid #444; border-radius: 4px;">
+                        <i data-lucide="gitlab" style="width: 14px;"></i>
+                        Ver Chamado
+                    </a>
+                `;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'data-card';
+            card.style.marginBottom = '1.5rem';
+            card.style.borderLeft = '4px solid #8e44ad';
+
+            const headerDiv = document.createElement('div');
+            headerDiv.style.padding = '1rem';
+            headerDiv.style.borderBottom = '1px solid #30363d';
+            headerDiv.style.display = 'flex';
+            headerDiv.style.justifyContent = 'space-between';
+            headerDiv.style.alignItems = 'center';
+            
+            headerDiv.innerHTML = `
+                <div style="display:flex; align-items:center;">
+                    <span style="font-weight: 600; font-size: 1.1rem;">${project}</span>
+                    <span class="tag" style="background:#8e44ad; color:white; margin-left: 10px;">v${info.version}</span>
+                </div>
+                <div style="display:flex; align-items:center;">
+                    ${gitlabLink}
+                </div>
+            `;
+            
+            const tableContainer = document.createElement('div');
+            tableContainer.className = 'table-container';
+            const table = document.createElement('table');
+            table.innerHTML = `<thead><tr><th>Projeto</th><th>Resumo</th><th>Dev</th><th>Links</th></tr></thead><tbody></tbody>`;
+            const tbody = table.querySelector('tbody');
+            prs.forEach(pr => {
+                 const tr = document.createElement('tr');
+                 tr.innerHTML = `<td><span class="tag">${pr.project || '-'}</span></td><td>${pr.summary || '-'}</td><td>${pr.dev || '-'}</td><td><div style="display: flex; gap: 0.8rem;">${pr.taskLink ? `<a href="${pr.taskLink}" target="_blank" class="link-icon"><i data-lucide="external-link" style="width: 14px;"></i></a>` : ''}${pr.prLink ? `<a href="${pr.prLink}" target="_blank" class="link-icon"><i data-lucide="git-pull-request" style="width: 14px;"></i></a>` : ''}</div></td>`;
+                 tbody.appendChild(tr);
+            });
+
+            tableContainer.appendChild(table);
+            card.appendChild(headerDiv);
+            card.appendChild(tableContainer);
+            container.appendChild(card);
+        });
+    });
+}
+
+function renderHistoryTable(data, containerId, onEdit) {
+    // Renders the COMPLETED sprints (History)
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    
+    if (data.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary); border: 1px dashed #30363d; border-radius: 6px; font-size: 0.9rem;">Histórico vazio.</div>';
+        return;
+    }
+
+    const bySprint = data.reduce((acc, pr) => {
+        const sprint = pr.sprint || 'Antigos';
+        if (!acc[sprint]) acc[sprint] = [];
+        acc[sprint].push(pr);
+        return acc;
+    }, {});
+
+    const sprints = Object.keys(bySprint).sort().reverse();
+
+    sprints.forEach(sprintName => {
+        // Sprint Header (Grayer / Simpler)
+        const sprintHeader = document.createElement('h4');
+        sprintHeader.textContent = sprintName;
+        sprintHeader.style.cssText = 'color: var(--text-secondary); margin: 2rem 0 1rem 0; padding-left: 10px; border-left: 3px solid #555; font-size: 1rem; opacity: 0.7;';
+        container.appendChild(sprintHeader);
+
+        const projectPrsInSprint = bySprint[sprintName];
+        const byProjectVer = projectPrsInSprint.reduce((acc, pr) => {
+            const project = pr.project || 'Outros';
+            const key = `${project}-${pr.version}`; 
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(pr);
+            return acc;
+        }, {});
+        
+        const keys = Object.keys(byProjectVer).sort();
+
+        keys.forEach(key => {
+            const prs = byProjectVer[key];
+            const info = prs[0];
+            const project = info.project;
+            let gitlabLink = '';
+            if (info.gitlabIssueLink) {
+                 gitlabLink = `
+                    <a href="${info.gitlabIssueLink}" target="_blank" style="color: var(--text-secondary); font-size: 0.75rem; text-decoration: none; opacity: 0.8;">
+                        <i data-lucide="gitlab" style="width: 12px;"></i> Issue
+                    </a>
+                `;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'data-card';
+            card.style.marginBottom = '1rem';
+            card.style.border = '1px solid #30363d'; // Simple border, no color
+            card.style.backgroundColor = 'rgba(22, 27, 34, 0.5)'; // Slighly transparent
+            card.style.opacity = '0.7'; // Overall dimmer look
+
+            const headerDiv = document.createElement('div');
+            headerDiv.style.padding = '0.5rem 1rem'; // Compact padding
+            headerDiv.style.borderBottom = '1px solid #30363d';
+            headerDiv.style.display = 'flex';
+            headerDiv.style.justifyContent = 'space-between';
+            headerDiv.style.alignItems = 'center';
+            headerDiv.style.background = '#21262d';
+            
+            headerDiv.innerHTML = `
+                <div style="display:flex; align-items:center; gap: 10px;">
+                    <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-secondary);">${project}</span>
+                    <span class="tag" style="background:#555; color:#ccc; font-size:0.7rem;">v${info.version}</span>
+                </div>
+                <div>${gitlabLink}</div>
+            `;
+            
+            const tableContainer = document.createElement('div');
+            tableContainer.className = 'table-container';
+            const table = document.createElement('table');
+            table.style.fontSize = '0.85rem'; // Smaller text for history
+            table.innerHTML = `<thead><tr style="background:transparent;"><th style="padding:0.5rem;">Projeto</th><th style="padding:0.5rem;">Resumo</th><th style="padding:0.5rem;">Dev</th></tr></thead><tbody></tbody>`;
+            const tbody = table.querySelector('tbody');
+            prs.forEach(pr => {
+                 const tr = document.createElement('tr');
+                 tr.innerHTML = `<td style="padding:0.5rem; color:var(--text-secondary);">${pr.project || '-'}</td><td style="padding:0.5rem; color:var(--text-secondary);">${pr.summary || '-'}</td><td style="padding:0.5rem; color:var(--text-secondary);">${pr.dev || '-'}</td>`;
+                 tbody.appendChild(tr);
+            });
+
+            tableContainer.appendChild(table);
+            card.appendChild(headerDiv);
+            card.appendChild(tableContainer);
+            container.appendChild(card);
         });
     });
 }
@@ -197,118 +424,24 @@ function renderApprovedTables(data, containerId, onEdit) {
     });
 }
 
-function renderTestingTable(data, containerId, onEdit) {
-    // Renders the released to STG table
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    container.innerHTML = '';
-    
-    if (data.length === 0) {
-        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary); background: #161b22; border: 1px solid #30363d; border-radius: 6px;">Nenhuma versão em teste (STG).</div>';
-        return;
-    }
-
-    // 1. Group by Sprint
-    const bySprint = data.reduce((acc, pr) => {
-        const sprint = pr.sprint || 'Outras Versões';
-        if (!acc[sprint]) acc[sprint] = [];
-        acc[sprint].push(pr);
-        return acc;
-    }, {});
-
-    // Sort Sprints (Desc or Asc? Assuming Sprint 144 > Sprint 143, so Descending)
-    const sprints = Object.keys(bySprint).sort().reverse();
-
-    sprints.forEach(sprintName => {
-        // Sprint Header
-        const sprintHeader = document.createElement('h3');
-        sprintHeader.textContent = sprintName;
-        sprintHeader.style.cssText = 'color: var(--text-primary); margin: 2rem 0 1rem 0; padding-left: 15px; padding-bottom: 0.5rem; border-bottom: 1px solid #30363d; border-left: 4px solid #8e44ad; font-size: 1.1rem; opacity: 0.9;';
-        container.appendChild(sprintHeader);
-
-        const projectPrsInSprint = bySprint[sprintName];
-
-        // 2. Group by Project-Version within Sprint
-        const byProjectVer = projectPrsInSprint.reduce((acc, pr) => {
-            const project = pr.project || 'Outros';
-            const key = `${project}-${pr.version}`; 
-            if (!acc[key]) acc[key] = [];
-            acc[key].push(pr);
-            return acc;
-        }, {});
-        
-        const keys = Object.keys(byProjectVer).sort();
-
-        keys.forEach(key => {
-            const prs = byProjectVer[key];
-            const info = prs[0];
-            const project = info.project;
-            
-            let gitlabLink = '';
-            if (info.gitlabIssueLink) {
-                    gitlabLink = `
-                    <a href="${info.gitlabIssueLink}" target="_blank" class="btn" style="background-color: #30363d; color: var(--text-secondary); padding: 0.2rem 0.6rem; font-size: 0.75rem; margin-left: 10px; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; border: 1px solid #444; border-radius: 4px;">
-                        <i data-lucide="gitlab" style="width: 14px;"></i>
-                        Ver Chamado
-                    </a>
-                `;
-            }
-
-            const card = document.createElement('div');
-            card.className = 'data-card';
-            card.style.marginBottom = '1.5rem';
-            card.style.borderLeft = '4px solid #8e44ad'; // Purple indicator for STG
-
-            const headerDiv = document.createElement('div');
-            headerDiv.style.padding = '1rem';
-            headerDiv.style.borderBottom = '1px solid #30363d';
-            headerDiv.style.display = 'flex';
-            headerDiv.style.justifyContent = 'space-between';
-            headerDiv.style.alignItems = 'center';
-            
-            headerDiv.innerHTML = `
-                <div style="display:flex; align-items:center;">
-                    <span style="font-weight: 600; font-size: 1.1rem;">${project}</span>
-                    <span class="tag" style="background:#8e44ad; color:white; margin-left: 10px;">v${info.version}</span>
-                </div>
-                <div style="display:flex; align-items:center;">
-                    ${gitlabLink}
-                </div>
-            `;
-            
-            const tableContainer = document.createElement('div');
-            tableContainer.className = 'table-container';
-            const table = document.createElement('table');
-            table.innerHTML = `<thead><tr><th>Projeto</th><th>Resumo</th><th>Dev</th><th>Links</th></tr></thead><tbody></tbody>`;
-            const tbody = table.querySelector('tbody');
-            prs.forEach(pr => {
-                 const tr = document.createElement('tr');
-                 tr.innerHTML = `<td><span class="tag">${pr.project || '-'}</span></td><td>${pr.summary || '-'}</td><td>${pr.dev || '-'}</td><td><div style="display: flex; gap: 0.8rem;">${pr.taskLink ? `<a href="${pr.taskLink}" target="_blank" class="link-icon"><i data-lucide="external-link" style="width: 14px;"></i></a>` : ''}${pr.prLink ? `<a href="${pr.prLink}" target="_blank" class="link-icon"><i data-lucide="git-pull-request" style="width: 14px;"></i></a>` : ''}</div></td>`;
-                 tbody.appendChild(tr);
-            });
-
-            tableContainer.appendChild(table);
-            card.appendChild(headerDiv);
-            card.appendChild(tableContainer);
-            container.appendChild(card);
-        });
-    });
-}
 
 function showLoading(show) {
-    const displayStyle = show ? 'none' : 'block';
-    const loadingStyle = show ? 'flex' : 'none';
+    const loading = document.getElementById('loading');
+    const db = document.getElementById('dashboard');
+    const dbApp = document.getElementById('dashboardApproved');
+    const dbTest = document.getElementById('dashboardTesting');
+    const dbHist = document.getElementById('dashboardHistory');
 
-    const dashboard = document.getElementById('dashboard');
-    const dashboardApproved = document.getElementById('dashboardApproved');
-    if (dashboard) dashboard.style.display = displayStyle;
-    if (dashboardApproved) dashboardApproved.style.display = displayStyle;
-
-    const loadingOpen = document.getElementById('loadingOpen');
-    const loadingApproved = document.getElementById('loadingApproved'); 
+    if (loading) {
+        loading.style.display = show ? 'flex' : 'none';
+    }
     
-    if (loadingOpen) loadingOpen.style.display = loadingStyle;
-    if (loadingApproved) loadingApproved.style.display = loadingStyle;
+    const contentDisplay = show ? 'none' : 'block';
+    
+    if (db) db.style.display = contentDisplay;
+    if (dbApp) dbApp.style.display = contentDisplay;
+    if (dbTest) dbTest.style.display = contentDisplay;
+    if (dbHist) dbHist.style.display = contentDisplay;
 }
 
 export { showToast, renderTable, showLoading };

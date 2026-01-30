@@ -125,6 +125,13 @@ document.querySelectorAll('.profile-item').forEach(item => {
 
 
 async function loadData() {
+    const token = LocalStorage.getItem('githubToken');
+    if (!token) {
+        DOM.showToast('Token não configurado. Por favor, adicione o token do GitHub.', 'error');
+        setupModal.style.display = 'flex';
+        return;
+    }
+
     DOM.showLoading(true);
     const result = await API.fetchPRs();
     
@@ -534,6 +541,37 @@ window.createGitLabIssue = async (projectName) => {
             DOM.showToast('Erro ao criar chamado: ' + error.message, 'error');
         } finally {
             DOM.showLoading(false);
+        }
+    }
+};
+
+window.completeSprint = async (sprintName) => {
+    if (confirm(`Deseja concluir a Sprint "${sprintName}"? \nIsso moverá os itens para o Histórico de Sprints.`)) {
+        let changed = false;
+        
+        currentData.prs.forEach(pr => {
+             if (pr.sprint === sprintName && pr.deployedToStg && !pr.sprintCompleted) {
+                 pr.sprintCompleted = true;
+                 pr.completedAt = new Date().toISOString();
+                 changed = true;
+             }
+        });
+
+        if (changed) {
+            try {
+                DOM.showLoading(true);
+                const result = await API.savePRs(currentData, currentSha);
+                currentData = result.newData;
+                currentSha = result.newSha;
+                DOM.showToast(`Sprint "${sprintName}" concluída e arquivada!`);
+                DOM.renderTable(currentData.prs, openEditModal);
+            } catch (error) {
+                 DOM.showToast('Erro ao concluir sprint: ' + error.message, 'error');
+            } finally {
+                DOM.showLoading(false);
+            }
+        } else {
+             DOM.showToast('Nenhum item pendente nesta Sprint.', 'info');
         }
     }
 };
