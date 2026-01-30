@@ -12,7 +12,8 @@
       "approved": true,
       "updatedAt": "2026-01-30T03:13:42.269Z",
       "approvedBy": "Samuel Santos",
-      "approvedAt": "2026-01-30T03:14:42.075Z"
+      "approvedAt": "2026-01-30T03:14:42.075Z",
+      "versionRequested": true
     },
     {
       "id": "1769742847522",
@@ -38,8 +39,9 @@
       "approved": true,
       "updatedAt": "2026-01-30T03:14:22.073Z",
       "approvedBy": "Samuel Santos",
-      "approvedAt": "2026-01-30T03:14:44.871Z"
+      "approvedAt": "2026-01-30T03:14:44.871Z",
+      "versionRequested": true
     }
   ],
-  "last_updated": "2026-01-30T03:14:44.871Z"
+  "last_updated": "2026-01-30T03:15:14.401Z"
 }
