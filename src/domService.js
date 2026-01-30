@@ -61,13 +61,70 @@ function renderOpenTable(data, containerId, onEdit) {
         body.appendChild(headerRow);
         projectPrs.forEach((pr) => {
             const tr = document.createElement('tr');
+            const needsCorrection = !!pr.needsCorrection;
+            const isSamuel = getItem('appUser') === 'Samuel Santos';
+            
+            if (needsCorrection) {
+                tr.style.background = 'rgba(230, 126, 34, 0.05)';
+                tr.style.borderLeft = '3px solid #e67e22';
+            }
+
+            let statusBg, statusText, statusTooltip;
+
+            if (needsCorrection) {
+                statusBg = '#e67e22'; // Orange
+                statusText = 'Ajustes';
+                statusTooltip = `title="Motivo: ${pr.correctionReason || 'Geral'}" style="cursor:help; background: ${statusBg}"`;
+            } else if (pr.reqVersion === 'ok' || !pr.reqVersion) {
+                // "Revisão" Status
+                statusText = 'Revisão';
+                // Admin sees Warning color, others see neutral
+                statusBg = isSamuel ? '#d35400' : '#30363d'; 
+                // Changed to a slightly darker orange/red (#d35400) for better contrast/warning on dark theme
+                statusTooltip = `style="background: ${statusBg}"`;
+            } else {
+                 // Fallback for specific versions if any
+                statusBg = '#30363d';
+                statusText = pr.reqVersion;
+                statusTooltip = `style="background: ${statusBg}"`;
+            }
+
             tr.innerHTML = `
                 <td><span class="tag">${pr.project || '-'}</span></td>
                 <td style="font-weight: 500;">${pr.summary || '-'}</td>
                 <td>${pr.dev || '-'}</td>
-                <td><span class="status-badge" style="background: ${pr.reqVersion === 'ok' ? '#238636' : '#30363d'}">${pr.reqVersion || '-'}</span></td>
+                <td><span class="status-badge" ${statusTooltip}>${statusText}</span></td>
                 <td><div style="display: flex; gap: 0.8rem;">${pr.teamsLink ? `<a href="${pr.teamsLink}" target="_blank" class="link-icon" title="Link Teams"><i data-lucide="message-circle" style="width: 16px;"></i></a>` : ''}${pr.taskLink ? `<a href="${pr.taskLink}" target="_blank" class="link-icon" title="Link Task"><i data-lucide="external-link" style="width: 16px;"></i></a>` : ''}${pr.prLink ? `<a href="${pr.prLink}" target="_blank" class="link-icon" title="Link PR"><i data-lucide="git-pull-request" style="width: 16px;"></i></a>` : ''}</div></td>
-                <td><button class="btn btn-outline edit-btn" style="padding: 0.4rem;"><i data-lucide="edit-3" style="width: 14px;"></i></button></td>`;
+                <td>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn btn-outline edit-btn" style="padding: 0.4rem;" title="Editar"><i data-lucide="edit-3" style="width: 14px;"></i></button>
+                        
+                        ${getItem('appUser') === 'Samuel Santos' ? 
+                            `<button class="btn btn-outline" 
+                                style="padding: 0.4rem; border-color: #d35400; color: #e67e22; ${needsCorrection ? 'opacity: 0.5; cursor: not-allowed;' : ''}" 
+                                title="${needsCorrection ? 'Correção já solicitada' : 'Solicitar Correção'}"
+                                onclick="${needsCorrection ? '' : `window.requestCorrection('${pr.id}')`}"
+                                ${needsCorrection ? 'disabled' : ''}>
+                                <i data-lucide="alert-circle" style="width: 14px;"></i>
+                            </button>
+                            <button class="btn btn-outline" 
+                                style="padding: 0.4rem; border-color: #238636; color: #238636;" 
+                                title="Aprovar PR"
+                                onclick="window.approvePr('${pr.id}')">
+                                <i data-lucide="check-circle" style="width: 14px;"></i>
+                            </button>` 
+                            : ''}
+
+                        ${(getItem('appUser') === pr.dev && needsCorrection) ? 
+                            `<button class="btn btn-outline" 
+                                style="padding: 0.4rem; border-color: #238636; color: #238636;" 
+                                title="Marcar como Corrigido"
+                                onclick="window.markPrFixed('${pr.id}')">
+                                <i data-lucide="check" style="width: 14px;"></i>
+                            </button>` 
+                            : ''}
+                    </div>
+                </td>`;
             const editBtn = tr.querySelector('.edit-btn');
             editBtn.addEventListener('click', () => onEdit(pr));
             body.appendChild(tr);
@@ -443,12 +500,12 @@ function createApprovedCard(projectName, projectPrs, currentUser, batchId) {
     const tableContainer = document.createElement('div');
     tableContainer.className = 'table-container';
     const table = document.createElement('table');
-    table.innerHTML = `<thead><tr><th>Projeto</th><th>Resumo</th><th>Dev</th><th>Solicitada</th><th>Links</th></tr></thead><tbody></tbody>`;
+    table.innerHTML = `<thead><tr><th>Projeto</th><th>Resumo</th><th>Dev</th><th>Status</th><th>Links</th></tr></thead><tbody></tbody>`;
     const tbody = table.querySelector('tbody');
     
     projectPrs.forEach(pr => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td><span class="tag">${pr.project || '-'}</span></td><td style="font-weight: 500;">${pr.summary || '-'}</td><td>${pr.dev || '-'}</td><td><span class="status-badge" style="background: ${pr.reqVersion === 'ok' ? '#238636' : '#30363d'}">${pr.reqVersion || '-'}</span></td><td><div style="display: flex; gap: 0.8rem;">${pr.teamsLink ? `<a href="${pr.teamsLink}" target="_blank" class="link-icon" title="Link Teams"><i data-lucide="message-circle" style="width: 16px;"></i></a>` : ''}${pr.taskLink ? `<a href="${pr.taskLink}" target="_blank" class="link-icon" title="Link Task"><i data-lucide="external-link" style="width: 16px;"></i></a>` : ''}${pr.prLink ? `<a href="${pr.prLink}" target="_blank" class="link-icon" title="Link PR"><i data-lucide="git-pull-request" style="width: 16px;"></i></a>` : ''}</div></td>`;
+        tr.innerHTML = `<td><span class="tag">${pr.project || '-'}</span></td><td style="font-weight: 500;">${pr.summary || '-'}</td><td>${pr.dev || '-'}</td><td><span class="status-badge" style="background: #8e44ad">Mergeado</span></td><td><div style="display: flex; gap: 0.8rem;">${pr.teamsLink ? `<a href="${pr.teamsLink}" target="_blank" class="link-icon" title="Link Teams"><i data-lucide="message-circle" style="width: 16px;"></i></a>` : ''}${pr.taskLink ? `<a href="${pr.taskLink}" target="_blank" class="link-icon" title="Link Task"><i data-lucide="external-link" style="width: 16px;"></i></a>` : ''}${pr.prLink ? `<a href="${pr.prLink}" target="_blank" class="link-icon" title="Link PR"><i data-lucide="git-pull-request" style="width: 16px;"></i></a>` : ''}</div></td>`;
         tbody.appendChild(tr);
     });
     card.appendChild(headerDiv);

@@ -15,8 +15,6 @@ const shortcutsModal = document.getElementById('shortcutsModal');
 const prForm = document.getElementById('prForm');
 const ghTokenInput = document.getElementById('ghTokenInput');
 const profileScreen = document.getElementById('profileScreen');
-const currentUserDisplay = document.getElementById('currentUserDisplay');
-const approveBtn = document.getElementById('approveBtn');
 
 window.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
@@ -190,7 +188,6 @@ function openEditModal(pr) {
     const isSamuel = appUser === 'Samuel Santos';
     const isApproved = !!pr.approved;
 
-    approveBtn.style.display = (isSamuel && !isApproved) ? 'block' : 'none';
 
     const fieldsToLock = ['project', 'dev', 'summary', 'prLink', 'taskLink', 'teamsLink'];
     fieldsToLock.forEach(id => {
@@ -216,7 +213,6 @@ function openAddModal() {
         document.getElementById('dev').value = appUser;
     }
 
-    approveBtn.style.display = 'none';
     const fieldsToLock = ['project', 'dev', 'summary', 'prLink', 'taskLink', 'teamsLink'];
     fieldsToLock.forEach(id => {
         document.getElementById(id).disabled = false;
@@ -230,35 +226,98 @@ document.getElementById('setupBtn').addEventListener('click', () => setupModal.s
 document.getElementById('shortcutsBtn').addEventListener('click', () => shortcutsModal.style.display = 'flex');
 document.getElementById('changeUserBtn').addEventListener('click', showProfileSelection);
 
-approveBtn.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const prId = document.getElementById('prId').value;
+// Shortcuts specific function
+window.approvePr = async (prId) => {
     if (!prId) return;
 
-    if (confirm('Aprovar este PR? Os campos principais serão bloqueados.')) {
-        const index = currentData.prs.findIndex(p => p.id === prId);
-        if (index !== -1) {
-            currentData.prs[index].approved = true;
-            currentData.prs[index].approvedBy = 'Samuel Santos';
-            currentData.prs[index].approvedAt = new Date().toISOString();
+    if (!confirm('Aprovar este PR? Os campos principais serão bloqueados.')) {
+        return;
+    }
+
+    const index = currentData.prs.findIndex(p => p.id === prId);
+    if (index !== -1) {
+        currentData.prs[index].approved = true;
+        currentData.prs[index].approvedBy = 'Samuel Santos';
+        currentData.prs[index].approvedAt = new Date().toISOString();
+        currentData.prs[index].needsCorrection = false; 
+        currentData.prs[index].correctionReason = null;
+        currentData.prs[index].reqVersion = 'ok';
+        
+        try {
+            DOM.showLoading(true);
+            const result = await API.savePRs(currentData, currentSha);
+            currentData = result.newData;
+            currentSha = result.newSha;
             
-            try {
-                DOM.showLoading(true);
-                const result = await API.savePRs(currentData, currentSha);
-                currentData = result.newData;
-                currentSha = result.newSha;
-                
-                DOM.showToast('PR Aprovado com sucesso!');
+            DOM.showToast('PR Aprovado com sucesso!');
+            DOM.renderTable(currentData.prs, openEditModal);
+            
+            const prModal = document.getElementById('prModal');
+            if (prModal && prModal.style.display === 'flex') {
                 prModal.style.display = 'none';
-                DOM.renderTable(currentData.prs, openEditModal);
-            } catch (error) {
-                DOM.showToast('Erro ao aprovar: ' + error.message, 'error');
-            } finally {
-                DOM.showLoading(false);
             }
+        } catch (error) {
+            DOM.showToast('Erro ao aprovar: ' + error.message, 'error');
+        } finally {
+            DOM.showLoading(false);
         }
     }
-});
+};
+
+window.requestCorrection = async (prId) => {
+    if (!prId) return;
+
+    if (!confirm('Solicitar correção para este PR? (O status mudará para "Ajustes")')) {
+        return;
+    }
+
+    const index = currentData.prs.findIndex(p => p.id === prId);
+    if (index !== -1) {
+        currentData.prs[index].needsCorrection = true;
+        currentData.prs[index].correctionReason = 'Verificar comentários no PR'; 
+        currentData.prs[index].approved = false; 
+        currentData.prs[index].reqVersion = 'changes_requested';
+        
+        try {
+            DOM.showLoading(true);
+            const result = await API.savePRs(currentData, currentSha);
+            currentData = result.newData;
+            currentSha = result.newSha;
+            
+            DOM.showToast('Correção solicitada!');
+            DOM.renderTable(currentData.prs, openEditModal);
+        } catch (error) {
+            DOM.showToast('Erro: ' + error.message, 'error');
+        } finally {
+            DOM.showLoading(false);
+        }
+    }
+};
+
+window.markPrFixed = async (prId) => {
+    if (!prId) return;
+
+    const index = currentData.prs.findIndex(p => p.id === prId);
+    if (index !== -1) {
+        currentData.prs[index].needsCorrection = false;
+        currentData.prs[index].correctionReason = null;
+        currentData.prs[index].reqVersion = 'ok';
+        
+        try {
+            DOM.showLoading(true);
+            const result = await API.savePRs(currentData, currentSha);
+            currentData = result.newData;
+            currentSha = result.newSha;
+            
+            DOM.showToast('PR marcado como corrigido!');
+            DOM.renderTable(currentData.prs, openEditModal);
+        } catch (error) {
+            DOM.showToast('Erro: ' + error.message, 'error');
+        } finally {
+            DOM.showLoading(false);
+        }
+    }
+};
 
 
 const devInput = document.getElementById('dev');
