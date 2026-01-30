@@ -13,7 +13,11 @@
       "updatedAt": "2026-01-30T03:13:42.269Z",
       "approvedBy": "Samuel Santos",
       "approvedAt": "2026-01-30T03:14:42.075Z",
-      "versionRequested": true
+      "versionRequested": false,
+      "version": "1.1.1.1",
+      "pipelineLink": "http://127.0.0.1:5500/index.html",
+      "rollback": "1.1.1.1",
+      "versionGroupStatus": "done"
     },
     {
       "id": "1769742847522",
@@ -40,8 +44,12 @@
       "updatedAt": "2026-01-30T03:14:22.073Z",
       "approvedBy": "Samuel Santos",
       "approvedAt": "2026-01-30T03:14:44.871Z",
-      "versionRequested": true
+      "versionRequested": false,
+      "version": "1.1.1.1",
+      "pipelineLink": "http://127.0.0.1:5500/index.html",
+      "rollback": "1.1.1.1",
+      "versionGroupStatus": "done"
     }
   ],
-  "last_updated": "2026-01-30T03:15:14.401Z"
+  "last_updated": "2026-01-30T03:18:06.698Z"
 }
