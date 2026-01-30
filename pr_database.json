@@ -20,8 +20,7 @@
       "versionGroupStatus": "done",
       "gitlabIssueLink": "https://gitlab.com/invent-software/pmo/service-desk/-/issues/938",
       "deployedToStg": true,
-      "deployedToStgAt": "2026-01-30T14:26:22.920Z",
-      "sprint": "Sprint 27"
+      "deployedToStgAt": "2026-01-30T14:26:22.920Z"
     },
     {
       "id": "1769776131027",
