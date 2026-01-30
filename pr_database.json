@@ -52,8 +52,9 @@
       "approved": true,
       "updatedAt": "2026-01-30T13:24:34.318Z",
       "approvedBy": "Samuel Santos",
-      "approvedAt": "2026-01-30T13:24:39.965Z"
+      "approvedAt": "2026-01-30T13:24:39.965Z",
+      "versionRequested": true
     }
   ],
-  "last_updated": "2026-01-30T13:25:59.199Z"
+  "last_updated": "2026-01-30T13:49:53.503Z"
 }
