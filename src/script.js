@@ -64,6 +64,7 @@ window.addEventListener('keydown', (e) => {
         } else {
             LocalStorage.setItem('previousUser', currentUser);
             EffectService.triggerGodMode();
+            profileScreen.style.display = 'none';
             
             LocalStorage.setItem('appUser', adminUser);
             updateUserDisplay(adminUser);
