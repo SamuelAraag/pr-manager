@@ -144,17 +144,7 @@ function renderGroupedTable(data, containerId, onEdit, isApprovedTable = false) 
             tr.innerHTML = `
                 <td><span class="tag">${pr.project || '-'}</span></td>
                 <td style="font-weight: 500;">${pr.summary || '-'}</td>
-                <td style="text-align: center;">
-                    ${pr.rev ? '<i data-lucide="check-circle" style="width: 16px; color: #58a6ff;"></i>' : '-'}
-                </td>
                 <td>${pr.dev || '-'}</td>
-                <td>
-                    <div style="font-size: 0.85rem;">
-                        <span style="color: #aff5b4;">${pr.version || '-'}</span>
-                        ${pr.rollback ? `<br><small style="color: #ffa198;">RB: ${pr.rollback}</small>` : ''}
-                        ${pr.pipelineLink ? `<br><a href="${pr.pipelineLink}" target="_blank" style="font-size:0.7rem; color:#58a6ff;">Pipeline</a>` : ''}
-                    </div>
-                </td>
                 <td><span class="status-badge" style="background: ${pr.reqVersion === 'ok' ? '#238636' : '#30363d'}">${pr.reqVersion || '-'}</span></td>
                 <td>
                     <div style="display: flex; gap: 0.8rem;">
