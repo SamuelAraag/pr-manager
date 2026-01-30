@@ -123,27 +123,6 @@ document.querySelectorAll('.profile-item').forEach(item => {
 });
 
 
-function updateReqVersionButton() {
-    const btn = document.getElementById('reqVersionBtn');
-    if (!btn) return;
-
-    const hasPendingRequest = currentData.prs.some(p => p.approved && p.versionRequested);
-    
-    if (hasPendingRequest) {
-        btn.textContent = 'Aguardando Versão...';
-        btn.disabled = true;
-        btn.classList.add('btn-outline');
-        btn.style.opacity = '0.6';
-        btn.style.cursor = 'not-allowed';
-    } else {
-        btn.innerHTML = '<i data-lucide="package-check"></i> Solicitar Versão';
-        btn.disabled = false;
-        btn.classList.remove('btn-outline');
-        btn.style.opacity = '1';
-        btn.style.cursor = 'pointer';
-        if (window.lucide) window.lucide.createIcons();
-    }
-}
 
 async function loadData() {
     DOM.showLoading(true);
@@ -153,7 +132,6 @@ async function loadData() {
         currentData = result.data;
         currentSha = result.sha;
         DOM.renderTable(currentData.prs, openEditModal);
-        updateReqVersionButton();
     } else {
         DOM.showToast('Erro ao carregar dados do GitHub', 'error');
     }
@@ -244,37 +222,6 @@ approveBtn.addEventListener('click', async (e) => {
     }
 });
 
-const reqVersionBtn = document.getElementById('reqVersionBtn');
-if (reqVersionBtn) {
-    reqVersionBtn.addEventListener('click', async () => {
-        const approvedPrs = currentData.prs.filter(p => p.approved);
-        
-        let changed = false;
-        approvedPrs.forEach(pr => {
-            if (!pr.version && !pr.versionRequested) {
-                pr.versionRequested = true;
-                changed = true;
-            }
-        });
-
-        if (changed) {
-            try {
-                DOM.showLoading(true);
-                const result = await API.savePRs(currentData, currentSha);
-                currentData = result.newData;
-                currentSha = result.newSha;
-                DOM.showToast('Versão solicitada com sucesso!');
-                DOM.renderTable(currentData.prs, openEditModal);
-            } catch (error) {
-                DOM.showToast('Erro ao solicitar versão: ' + error.message, 'error');
-            } finally {
-                DOM.showLoading(false);
-            }
-        } else {
-            DOM.showToast('Nenhum PR aprovado pendente de solicitação.', 'info');
-        }
-    });
-}
 
 const devInput = document.getElementById('dev');
 
@@ -421,6 +368,40 @@ window.saveGroupVersion = async (projectName) => {
             } finally {
                 DOM.showLoading(false);
             }
+        }
+    }
+};
+
+window.requestVersion = async (projectName) => {
+    const prs = currentData.prs.filter(p => p.project === projectName && p.approved);
+    
+    if (!prs.length) return;
+
+    if (confirm(`Solicitar versão para o projeto "${projectName}"?`)) {
+        let changed = false;
+        
+        currentData.prs.forEach(pr => {
+             if (pr.project === projectName && pr.approved && !pr.version && !pr.versionRequested) {
+                 pr.versionRequested = true;
+                 changed = true;
+             }
+        });
+
+        if (changed) {
+            try {
+                DOM.showLoading(true);
+                const result = await API.savePRs(currentData, currentSha);
+                currentData = result.newData;
+                currentSha = result.newSha;
+                DOM.showToast('Versão solicitada com sucesso!');
+                DOM.renderTable(currentData.prs, openEditModal);
+            } catch (error) {
+                 DOM.showToast('Erro ao solicitar versão: ' + error.message, 'error');
+            } finally {
+                DOM.showLoading(false);
+            }
+        } else {
+             DOM.showToast('Nenhum PR para solicitar versão neste grupo.', 'info');
         }
     }
 };
