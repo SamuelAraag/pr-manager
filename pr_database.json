@@ -14,7 +14,23 @@
       "rev": false,
       "reqVersion": "",
       "updatedAt": "2026-01-30T01:51:51.472Z"
+    },
+    {
+      "id": "1769738662919",
+      "project": "DF-e",
+      "dev": "Samuel Santos",
+      "summary": "asdfasdfasdf",
+      "prLink": "https://bitbucket.org/invent-software/taxplus.dfe/pull-requests/150",
+      "taskLink": "https://invent-software.atlassian.net/browse/TXDF-774?atlOrigin=eyJpIjoiYTM0MGI4ZmUxZjhkNGFlOWFmMjlhODc0NTY0ZjlkMDIiLCJwIjoiSmlyYS1Ob3Rpb25MaW5rLUludCJ9",
+      "teamsLink": "https://teams.microsoft.com/l/message/19:7f348a985f10465e8fe925b511d98249@thread.tacv2/1769029095592?tenantId=9485bd55-92c0-4212-96ca-9143bb8a7045&groupId=47045f0e-b327-4f59-ae23-fe0e6085ea8f&parentMessageId=1769029095592&teamName=Projetos%20Cloud&channelName=TaxPlus%20-%20DF-e&createdTime=1769029095592",
+      "pipelineLink": "",
+      "version": "",
+      "rollback": "",
+      "rev": false,
+      "reqVersion": "",
+      "approved": false,
+      "updatedAt": "2026-01-30T02:04:22.919Z"
     }
   ],
-  "last_updated": "2026-01-30T01:51:51.472Z"
+  "last_updated": "2026-01-30T02:04:22.920Z"
 }
