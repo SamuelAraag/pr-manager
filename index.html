@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PR Manager | Local GitOps</title>
+    <link rel="stylesheet" href="src/style.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-area">
+                <h1>PR Manager</h1>
+                <p style="color: var(--text-secondary); font-size: 0.8rem;">Controle de PRs com persistência no GitHub</p>
+            </div>
+            <div class="actions">
+                <button id="setupBtn" class="btn btn-outline" title="Configurar Token">
+                    <i data-lucide="settings"></i>
+                </button>
+                <button id="addPrBtn" class="btn btn-primary">
+                    <i data-lucide="plus"></i> Novo PR
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <div id="loading" class="loading-container">
+                <span class="loader"></span>
+                <p>Buscando dados no GitHub...</p>
+            </div>
+
+            <div id="dashboard" class="data-card">
+                <div class="table-container">
+                    <table id="prTable">
+                        <thead>
+                            <tr>
+                                <th>Projeto</th>
+                                <th>Resumo</th>
+                                <th>Rev</th>
+                                <th>Dev</th>
+                                <th>Versão</th>
+                                <th>Solicitada</th>
+                                <th>Links</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="prTableBody">
+                            <!-- Items will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Setup Modal (Token) -->
+    <div id="setupModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>Configurar Acesso</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="form-group" style="margin-bottom: 1rem;">
+                <label>GitHub Personal Access Token</label>
+                <input type="password" id="ghTokenInput" placeholder="ghp_...">
+                <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                    O token fica salvo apenas no LocalStorage do seu navegador.
+                </p>
+            </div>
+            <button id="saveConfigBtn" class="btn btn-primary" style="width: 100%;">Salvar</button>
+        </div>
+    </div>
+
+    <!-- Add/Edit PR Modal -->
+    <div id="prModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Novo Pull Request</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <form id="prForm">
+                <input type="hidden" id="prId">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Projeto</label>
+                        <select id="project" required>
+                            <option value="DF-e">DF-e</option>
+                            <option value="NF-e">NF-e</option>
+                            <option value="NFS-e">NFS-e</option>
+                            <option value="CT-e">CT-e</option>
+                            <option value="Classification">Classification</option>
+                            <option value="Other">Outro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Desenvolvedor</label>
+                        <input type="text" id="dev" placeholder="Ex: Rodrigo" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Resumo</label>
+                        <input type="text" id="summary" placeholder="Ex: [T] Correção do cálculo de imposto" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Link PR</label>
+                        <input type="url" id="prLink" placeholder="https://bitbucket.org/...">
+                    </div>
+                    <div class="form-group">
+                        <label>Link Task (Jira)</label>
+                        <input type="url" id="taskLink" placeholder="https://atlassian.net/...">
+                    </div>
+                    <div class="form-group">
+                        <label>Post no Teams</label>
+                        <input type="url" id="teamsLink" placeholder="Link da mensagem">
+                    </div>
+                    <div class="form-group">
+                        <label>Pipeline</label>
+                        <input type="url" id="pipelineLink" placeholder="Link do CI/CD">
+                    </div>
+                    <div class="form-group">
+                        <label>Versão Atual</label>
+                        <input type="text" id="version" placeholder="26.01.27.412">
+                    </div>
+                    <div class="form-group">
+                        <label>Versão Rollback</label>
+                        <input type="text" id="rollback" placeholder="26.01.13.403">
+                    </div>
+                    <div class="form-group">
+                        <label>Rev</label>
+                        <input type="text" id="rev" placeholder="-">
+                    </div>
+                    <div class="form-group">
+                        <label>Solicitado Versão</label>
+                        <input type="text" id="reqVersion" placeholder="ok">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Doc Link</label>
+                        <input type="url" id="docLink" placeholder="Sharepoint / Confluence">
+                    </div>
+                </div>
+                <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+                    <button type="button" class="btn btn-outline close-modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar no GitHub</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast"></div>
+
+    <script type="module" src="src/script.js"></script>
+    <script>
+        // Initialize lucide icons
+        setTimeout(() => lucide.createIcons(), 100);
+    </script>
+</body>
+</html>
