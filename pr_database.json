@@ -19,8 +19,7 @@
       "rollback": "26.01.29",
       "versionGroupStatus": "done",
       "gitlabIssueLink": "https://gitlab.com/invent-software/pmo/service-desk/-/issues/938",
-      "deployedToStg": true,
-      "deployedToStgAt": "2026-01-30T14:26:22.920Z"
+      "deployedToStg": false
     },
     {
       "id": "1769776131027",
