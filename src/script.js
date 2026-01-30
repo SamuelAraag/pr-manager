@@ -332,12 +332,53 @@ prForm.addEventListener('submit', async (e) => {
 
 window.saveGroupVersion = async (projectName) => {
     const escapedName = projectName.replace(/\s/g, '');
-    const version = document.getElementById(`v_ver_${escapedName}`).value;
-    const pipeline = document.getElementById(`v_pipe_${escapedName}`).value;
-    const rollback = document.getElementById(`v_roll_${escapedName}`).value;
+    
+    // Get Elements
+    const elVersion = document.getElementById(`v_ver_${escapedName}`);
+    const elPipeline = document.getElementById(`v_pipe_${escapedName}`);
+    const elRollback = document.getElementById(`v_roll_${escapedName}`);
 
+    const version = elVersion.value.trim();
+    const pipeline = elPipeline.value.trim();
+    const rollback = elRollback.value.trim();
+
+    // Reset styles
+    [elVersion, elPipeline, elRollback].forEach(el => el.style.border = '1px solid #30363d');
+
+    let hasError = false;
+
+    // Required check
     if (!version) {
-        DOM.showToast('Por favor, informe a versão.', 'error');
+        elVersion.style.border = '1px solid #da3633';
+        hasError = true;
+    }
+    if (!pipeline) {
+        elPipeline.style.border = '1px solid #da3633';
+        hasError = true;
+    }
+    if (!rollback) {
+        elRollback.style.border = '1px solid #da3633';
+        hasError = true;
+    }
+
+    if (hasError) {
+        DOM.showToast('Preencha todos os campos obrigatórios.', 'error');
+        return;
+    }
+
+    // Version Regex Validation
+    // Example: 26.01.30.428
+    const versionRegex = /^\d+\.\d+\.\d+\.\d+$/;
+    
+    if (!versionRegex.test(version)) {
+        elVersion.style.border = '1px solid #da3633';
+        DOM.showToast('Versão inválida. Use 4 grupos numéricos (ex: 26.01.30.428)', 'error');
+        return;
+    }
+
+    if (!versionRegex.test(rollback)) {
+        elRollback.style.border = '1px solid #da3633';
+        DOM.showToast('Rollback inválido. Use 4 grupos numéricos (ex: 26.01.30.428)', 'error');
         return;
     }
 
