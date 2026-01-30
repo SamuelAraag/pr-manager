@@ -72,8 +72,10 @@
       "approved": true,
       "updatedAt": "2026-01-30T15:50:53.723Z",
       "approvedBy": "Samuel Santos",
-      "approvedAt": "2026-01-30T15:51:04.772Z"
+      "approvedAt": "2026-01-30T15:51:04.772Z",
+      "versionRequested": true,
+      "versionBatchId": "1769788284346"
     }
   ],
-  "last_updated": "2026-01-30T15:51:04.773Z"
+  "last_updated": "2026-01-30T15:51:24.347Z"
 }
