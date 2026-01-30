@@ -86,7 +86,7 @@
     },
     {
       "id": "E5Dspa13",
-      "project": "CT-e Buscador",
+      "project": "CT-e Conversor",
       "dev": "Samuel Santos",
       "summary": "Atualização da imagem docker pipeline",
       "prLink": "https://bitbucket.org/invent-software/taxplus.cte/pull-requests/10",
