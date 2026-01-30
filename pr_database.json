@@ -54,11 +54,11 @@
       "prLink": "https://bitbucket.org/invent-software/taxplus.dfe/pull-requests/154/overview",
       "taskLink": "https://invent-software.atlassian.net/browse/TXDF-1019",
       "teamsLink": "https://teams.microsoft.com/l/message/19:7f348a985f10465e8fe925b511d98249@thread.tacv2/1769719332732?tenantId=9485bd55-92c0-4212-96ca-9143bb8a7045&groupId=47045f0e-b327-4f59-ae23-fe0e6085ea8f&parentMessageId=1769719332732&teamName=Projetos%20Cloud&channelName=TaxPlus%20-%20DF-e&createdTime=1769719332732",
-      "reqVersion": "changes_requested",
+      "reqVersion": "ok",
       "approved": false,
       "updatedAt": "2026-01-30T17:07:54.386Z",
-      "needsCorrection": true,
-      "correctionReason": "faltou tal coisa"
+      "needsCorrection": false,
+      "correctionReason": null
     },
     {
       "id": "qSh2W5o3",
@@ -209,5 +209,5 @@
       "updatedAt": "2026-01-30T20:50:07.864Z"
     }
   ],
-  "last_updated": "2026-01-30T21:49:28.441Z"
+  "last_updated": "2026-01-30T21:54:11.960Z"
 }
