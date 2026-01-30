@@ -158,8 +158,8 @@ function renderGroupedTable(data, containerId, onEdit, isApprovedTable = false) 
                 <td><span class="status-badge" style="background: ${pr.reqVersion === 'ok' ? '#238636' : '#30363d'}">${pr.reqVersion || '-'}</span></td>
                 <td>
                     <div style="display: flex; gap: 0.8rem;">
-                        ${pr.prLink ? `<a href="${pr.prLink}" target="_blank" class="link-icon" title="Link PR"><i data-lucide="git-pull-request" style="width: 16px;"></i></a>` : ''}
                         ${pr.taskLink ? `<a href="${pr.taskLink}" target="_blank" class="link-icon" title="Link Task"><i data-lucide="external-link" style="width: 16px;"></i></a>` : ''}
+                        ${pr.prLink ? `<a href="${pr.prLink}" target="_blank" class="link-icon" title="Link PR"><i data-lucide="git-pull-request" style="width: 16px;"></i></a>` : ''}
                         ${pr.docLink ? `<a href="${pr.docLink}" target="_blank" class="link-icon" title="Docs"><i data-lucide="file-text" style="width: 16px;"></i></a>` : ''}
                     </div>
                 </td>
