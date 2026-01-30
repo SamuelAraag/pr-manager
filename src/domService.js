@@ -404,7 +404,7 @@ function createApprovedCard(projectName, projectPrs, currentUser, batchId) {
                     <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size:0.8rem;" onclick="window.saveGroupVersion('${projectName}', '${batchId}')">Salvar</button>
                 </div>`;
         } else {
-            leftContent += ` <span style="font-size:0.75rem; margin-left:10px; color:var(--text-secondary);">(Aguardando: ${majorityDev})</span>`;
+            leftContent += ` <span style="font-size:0.75rem; margin-left:10px; color:#ff7b72;">(Aguardando: ${majorityDev})</span>`;
         }
     } else if (hasVersionInfo && currentUser === 'Samuel Santos') {
             const info = projectPrs.find(p => p.version);
