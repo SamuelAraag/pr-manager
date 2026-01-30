@@ -37,7 +37,8 @@
       "version": "26.01.30.185",
       "pipelineLink": "https://gitlab.com/invent-software/taxplus/inventapps/documentos-eletr-nicos/taxplus-dfe-classification/-/pipelines/2296538752",
       "rollback": "26.01.12.1",
-      "versionGroupStatus": "done"
+      "versionGroupStatus": "done",
+      "gitlabIssueLink": "https://gitlab.com/invent-software/pmo/service-desk/-/issues/941"
     },
     {
       "id": "1769779474318",
@@ -54,5 +55,5 @@
       "approvedAt": "2026-01-30T13:24:39.965Z"
     }
   ],
-  "last_updated": "2026-01-30T13:25:47.241Z"
+  "last_updated": "2026-01-30T13:25:59.199Z"
 }
