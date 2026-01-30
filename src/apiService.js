@@ -8,12 +8,16 @@ const DEFAULT_CONFIG = {
     owner: 'SamuelAraag',
     repo: 'pr-manager',
     filePath: 'pr_database.json',
-    branch: 'main' // Or another branch
+    branch: 'database-strategy' 
 };
 
 function getConfig() {
     const savedConfig = getItem('githubConfig');
-    return savedConfig || DEFAULT_CONFIG;
+    // Force the branch to always be database-strategy regardless of saved config
+    return { 
+        ...(savedConfig || DEFAULT_CONFIG), 
+        branch: 'database-strategy' 
+    };
 }
 
 function getHeaders() {

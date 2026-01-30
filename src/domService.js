@@ -1,4 +1,5 @@
 // domService.js
+import { getItem } from './localStorageService.js';
 
 /**
  * Exibe um toast de notificação
@@ -25,8 +26,8 @@ function renderTable(prs, onEdit) {
     const openPrs = prs.filter(p => !p.approved);
     const approvedPrs = prs.filter(p => p.approved);
 
-    renderGroupedTable(openPrs, 'openPrTableBody', onEdit);
-    renderGroupedTable(approvedPrs, 'approvedPrTableBody', onEdit);
+    renderGroupedTable(openPrs, 'openPrTableBody', onEdit, false);
+    renderGroupedTable(approvedPrs, 'approvedPrTableBody', onEdit, true);
 
     // Refresh icons
     if (window.lucide) {
@@ -34,7 +35,7 @@ function renderTable(prs, onEdit) {
     }
 }
 
-function renderGroupedTable(data, containerId, onEdit) {
+function renderGroupedTable(data, containerId, onEdit, isApprovedTable = false) {
     const body = document.getElementById(containerId);
     if (!body) return;
     
@@ -57,16 +58,89 @@ function renderGroupedTable(data, containerId, onEdit) {
     const projectNames = Object.keys(grouped).sort();
 
     projectNames.forEach(projectName => {
+        const projectPrs = grouped[projectName];
+        const isRequestingVersion = projectPrs.some(p => p.versionRequested);
+        
+        let headerStyle = '';
+        let headerContent = `${projectName} <span class="badge">${projectPrs.length}</span>`;
+        let versionInputs = '';
+
+        if (isApprovedTable) {
+            const hasVersionInfo = projectPrs.some(p => p.version);
+            const currentUser = getItem('appUser');
+
+            if (isRequestingVersion) {
+                // ... (existing majority dev logic) ...
+                const devCounts = projectPrs.reduce((acc, pr) => {
+                    acc[pr.dev] = (acc[pr.dev] || 0) + 1;
+                    return acc;
+                }, {});
+                
+                // Find dev with max count
+                const majorityDev = Object.keys(devCounts).reduce((a, b) => devCounts[a] > devCounts[b] ? a : b);
+    
+                if (currentUser === majorityDev) {
+                    // Red Warning Style for Majority Dev
+                    headerStyle = 'background-color: rgba(218, 54, 51, 0.2); border-left: 4px solid #da3633; color: #ff7b72;';
+                    headerContent += ` <span style="font-size:0.75rem; margin-left:10px; color:#ff7b72;">(Ação Necessária: Versão)</span>`;
+                    
+                    // Inject Inputs
+                    versionInputs = `
+                        <div style="margin-top: 10px; display: flex; gap: 10px; align-items: center;">
+                            <input type="text" placeholder="Versão (ex: 1.0.0)" class="version-input-group" id="v_ver_${projectName.replace(/\s/g, '')}" style="font-size:0.85rem; padding:0.4rem;">
+                            <input type="url" placeholder="Pipeline Link" class="version-input-group" id="v_pipe_${projectName.replace(/\s/g, '')}" style="font-size:0.85rem; padding:0.4rem;">
+                            <input type="text" placeholder="Rollback" class="version-input-group" id="v_roll_${projectName.replace(/\s/g, '')}" style="font-size:0.85rem; padding:0.4rem;">
+                            <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size:0.8rem;" onclick="window.saveGroupVersion('${projectName}')">Salvar</button>
+                        </div>
+                    `;
+                } else {
+                    // Info for others
+                    headerContent += ` <span style="font-size:0.75rem; margin-left:10px; color:var(--text-secondary);">(Aguardando: ${majorityDev})</span>`;
+                }
+            } else if (hasVersionInfo && currentUser === 'Samuel Santos') {
+                // Show GitLab Button for Admin
+                 versionInputs = `
+                    <div style="margin-top: 5px; display: flex; align-items: center;">
+                        <button class="btn" style="background-color: #6C5CE7; color: white; padding: 0.3rem 0.8rem; font-size: 0.75rem; display: flex; align-items: center; gap: 5px;" onclick="window.createGitLabIssue('${projectName}')">
+                            <i data-lucide="gitlab" style="width: 14px;"></i>
+                            Criar Chamado
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
         // Add Project Header
         const headerRow = document.createElement('tr');
         headerRow.className = 'group-header';
-        headerRow.innerHTML = `<td colspan="8">${projectName} <span class="badge">${grouped[projectName].length}</span></td>`;
+        if (headerStyle) headerRow.style.cssText = headerStyle;
+        
+        // Wrap content
+        headerRow.innerHTML = `
+            <td colspan="8">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>${headerContent}</div>
+                </div>
+                ${versionInputs}
+            </td>
+        `;
         body.appendChild(headerRow);
 
         // Add PR Rows
-        grouped[projectName].forEach((pr) => {
+        projectPrs.forEach((pr) => {
             const tr = document.createElement('tr');
             
+            // Action Column Content
+            let actionContent = '';
+            if (!isApprovedTable) {
+                // Only show edit button for Open PRs
+                actionContent = `
+                    <button class="btn btn-outline edit-btn" style="padding: 0.4rem;">
+                        <i data-lucide="edit-3" style="width: 14px;"></i>
+                    </button>
+                `;
+            }
+
             tr.innerHTML = `
                 <td><span class="tag">${pr.project || '-'}</span></td>
                 <td style="font-weight: 500;">${pr.summary || '-'}</td>
@@ -78,6 +152,7 @@ function renderGroupedTable(data, containerId, onEdit) {
                     <div style="font-size: 0.85rem;">
                         <span style="color: #aff5b4;">${pr.version || '-'}</span>
                         ${pr.rollback ? `<br><small style="color: #ffa198;">RB: ${pr.rollback}</small>` : ''}
+                        ${pr.pipelineLink ? `<br><a href="${pr.pipelineLink}" target="_blank" style="font-size:0.7rem; color:#58a6ff;">Pipeline</a>` : ''}
                     </div>
                 </td>
                 <td><span class="status-badge" style="background: ${pr.reqVersion === 'ok' ? '#238636' : '#30363d'}">${pr.reqVersion || '-'}</span></td>
@@ -89,14 +164,14 @@ function renderGroupedTable(data, containerId, onEdit) {
                     </div>
                 </td>
                 <td>
-                    <button class="btn btn-outline edit-btn" style="padding: 0.4rem;">
-                        <i data-lucide="edit-3" style="width: 14px;"></i>
-                    </button>
+                    ${actionContent}
                 </td>
             `;
 
-            const editBtn = tr.querySelector('.edit-btn');
-            editBtn.addEventListener('click', () => onEdit(pr));
+            if (!isApprovedTable) {
+                const editBtn = tr.querySelector('.edit-btn');
+                editBtn.addEventListener('click', () => onEdit(pr));
+            }
             
             body.appendChild(tr);
         });

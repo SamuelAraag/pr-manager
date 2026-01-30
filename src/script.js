@@ -2,6 +2,7 @@
 import * as LocalStorage from './localStorageService.js';
 import * as API from './apiService.js';
 import * as DOM from './domService.js';
+import { GitLabService } from './gitlabService.js';
 
 let currentData = { prs: [] };
 let currentSha = null;
@@ -13,8 +14,6 @@ const setupModal = document.getElementById('setupModal');
 const shortcutsModal = document.getElementById('shortcutsModal');
 const prForm = document.getElementById('prForm');
 const ghTokenInput = document.getElementById('ghTokenInput');
-const generateVersionCheckbox = document.getElementById('generateVersion');
-const versionSection = document.getElementById('versionSection');
 const profileScreen = document.getElementById('profileScreen');
 const currentUserDisplay = document.getElementById('currentUserDisplay');
 const approveBtn = document.getElementById('approveBtn');
@@ -38,7 +37,7 @@ window.addEventListener('keydown', (e) => {
         openAddModal();
     } else if (key === 's') {
         e.preventDefault();
-        setupModal.style.display = 'flex';
+        openSetupModal();
     } else if (key === 'r') {
         e.preventDefault();
         loadData();
@@ -73,7 +72,7 @@ async function init() {
         // Check if token exists
         const token = LocalStorage.getItem('githubToken');
         if (!token) {
-            setupModal.style.display = 'flex';
+            openSetupModal();
         } else {
             await loadData();
         }
@@ -82,6 +81,12 @@ async function init() {
 
 function showProfileSelection() {
     profileScreen.style.display = 'flex';
+}
+
+function openSetupModal() {
+    ghTokenInput.value = LocalStorage.getItem('githubToken') || '';
+    document.getElementById('glTokenInput').value = LocalStorage.getItem('gitlabToken') || '';
+    setupModal.style.display = 'flex';
 }
 
 function updateUserDisplay(userName) {
@@ -119,6 +124,27 @@ currentUserDisplay.addEventListener('click', () => {
     profileScreen.style.display = 'flex';
 });
 
+function updateReqVersionButton() {
+    const btn = document.getElementById('reqVersionBtn');
+    if (!btn) return;
+
+    const hasPendingRequest = currentData.prs.some(p => p.approved && p.versionRequested);
+    
+    if (hasPendingRequest) {
+        btn.textContent = 'Aguardando Versão...';
+        btn.disabled = true;
+        btn.classList.add('btn-outline'); // optional style change
+        btn.style.opacity = '0.6';
+        btn.style.cursor = 'not-allowed';
+    } else {
+        btn.innerHTML = '<i data-lucide="package-check"></i> Solicitar Versão';
+        btn.disabled = false;
+        btn.classList.remove('btn-outline');
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+    }
+}
+
 async function loadData() {
     DOM.showLoading(true);
     const result = await API.fetchPRs();
@@ -127,6 +153,7 @@ async function loadData() {
         currentData = result.data;
         currentSha = result.sha;
         DOM.renderTable(currentData.prs, openEditModal);
+        updateReqVersionButton();
     } else {
         DOM.showToast('Erro ao carregar dados do GitHub', 'error');
     }
@@ -142,16 +169,6 @@ function openEditModal(pr) {
     document.getElementById('prLink').value = pr.prLink || '';
     document.getElementById('taskLink').value = pr.taskLink || '';
     document.getElementById('teamsLink').value = pr.teamsLink || '';
-    document.getElementById('pipelineLink').value = pr.pipelineLink || '';
-    document.getElementById('version').value = pr.version || '';
-    document.getElementById('rollback').value = pr.rollback || '';
-    document.getElementById('reqVersion').value = pr.reqVersion || '';
-    
-    // Toggle version section visibility
-    const hasVersion = !!(pr.version || pr.pipelineLink || pr.rollback || pr.reqVersion);
-    generateVersionCheckbox.checked = hasVersion;
-    versionSection.style.display = hasVersion ? 'grid' : 'none';
-    
     // Handle Approval State
     const appUser = LocalStorage.getItem('appUser');
     const isSamuel = appUser === 'Samuel Santos';
@@ -187,9 +204,6 @@ function openAddModal() {
     }
 
     // Reset version section
-    generateVersionCheckbox.checked = false;
-    versionSection.style.display = 'none';
-
     // Reset Lock
     approveBtn.style.display = 'none';
     const fieldsToLock = ['project', 'dev', 'summary', 'prLink', 'taskLink', 'teamsLink'];
@@ -243,10 +257,41 @@ approveBtn.addEventListener('click', async (e) => {
     }
 });
 
-// Toggle version section
-generateVersionCheckbox.addEventListener('change', (e) => {
-    versionSection.style.display = e.target.checked ? 'grid' : 'none';
-});
+// Request Version Action
+const reqVersionBtn = document.getElementById('reqVersionBtn');
+if (reqVersionBtn) {
+    reqVersionBtn.addEventListener('click', async () => {
+        // Find approved PRs that don't have version and not yet requested
+        const approvedPrs = currentData.prs.filter(p => p.approved);
+        // We set versionRequested = true for all approved PRs (group based logic handled in render)
+        // or just strict boolean flag on all.
+        
+        let changed = false;
+        approvedPrs.forEach(pr => {
+            if (!pr.version && !pr.versionRequested) {
+                pr.versionRequested = true;
+                changed = true;
+            }
+        });
+
+        if (changed) {
+            try {
+                DOM.showLoading(true);
+                const result = await API.savePRs(currentData, currentSha);
+                currentData = result.newData;
+                currentSha = result.newSha;
+                DOM.showToast('Versão solicitada com sucesso!');
+                DOM.renderTable(currentData.prs, openEditModal);
+            } catch (error) {
+                DOM.showToast('Erro ao solicitar versão: ' + error.message, 'error');
+            } finally {
+                DOM.showLoading(false);
+            }
+        } else {
+            DOM.showToast('Nenhum PR aprovado pendente de solicitação.', 'info');
+        }
+    });
+}
 
 // Validation and Auto-fill for Dev Input
 const devInput = document.getElementById('dev');
@@ -285,13 +330,17 @@ document.querySelectorAll('.close-btn, .close-modal').forEach(btn => {
 
 // Save Config (Token)
 document.getElementById('saveConfigBtn').addEventListener('click', () => {
-    const token = ghTokenInput.value.trim();
-    if (token) {
-        LocalStorage.setItem('githubToken', token);
+    const ghToken = ghTokenInput.value.trim();
+    const glToken = document.getElementById('glTokenInput').value.trim();
+    
+    if (ghToken) {
+        LocalStorage.setItem('githubToken', ghToken);
+        if (glToken) LocalStorage.setItem('gitlabToken', glToken);
+        
         setupModal.style.display = 'none';
         loadData();
     } else {
-        alert('Por favor, insira um token válido.');
+        alert('Por favor, insira um token válido do GitHub.');
     }
 });
 
@@ -316,11 +365,7 @@ prForm.addEventListener('submit', async (e) => {
         prLink: document.getElementById('prLink').value,
         taskLink: document.getElementById('taskLink').value,
         teamsLink: document.getElementById('teamsLink').value,
-        pipelineLink: document.getElementById('pipelineLink').value,
-        version: document.getElementById('version').value,
-        rollback: document.getElementById('rollback').value,
-        rev: prId ? (currentData.prs.find(p => p.id === prId)?.rev || false) : false,
-        reqVersion: document.getElementById('reqVersion').value,
+        reqVersion: 'ok', // Deprecated or default
         approved: prId ? (currentData.prs.find(p => p.id === prId)?.approved || false) : false,
         updatedAt: new Date().toISOString()
     };
@@ -360,6 +405,90 @@ prForm.addEventListener('submit', async (e) => {
         DOM.showLoading(false);
     }
 });
+
+// Save Version for Group (Exposed to Window for inline onclick)
+window.saveGroupVersion = async (projectName) => {
+    const escapedName = projectName.replace(/\s/g, '');
+    const version = document.getElementById(`v_ver_${escapedName}`).value;
+    const pipeline = document.getElementById(`v_pipe_${escapedName}`).value;
+    const rollback = document.getElementById(`v_roll_${escapedName}`).value;
+
+    if (!version) {
+        DOM.showToast('Por favor, informe a versão.', 'error');
+        return;
+    }
+
+    if (confirm(`Aplicar versão ${version} para todos os PRs aprovados de "${projectName}"?`)) {
+        let changed = false;
+        
+        currentData.prs.forEach(pr => {
+            if (pr.project === projectName && pr.approved) {
+                pr.version = version;
+                pr.pipelineLink = pipeline;
+                pr.rollback = rollback;
+                pr.versionRequested = false; // Reset state
+                pr.versionGroupStatus = 'done'; // Optional tracking
+                changed = true;
+            }
+        });
+
+        if (changed) {
+            try {
+                DOM.showLoading(true);
+                const result = await API.savePRs(currentData, currentSha);
+                currentData = result.newData;
+                currentSha = result.newSha;
+                DOM.showToast('Versão aplicada com sucesso!');
+                DOM.renderTable(currentData.prs, openEditModal);
+            } catch (error) {
+                DOM.showToast('Erro ao salvar versão: ' + error.message, 'error');
+            } finally {
+                DOM.showLoading(false);
+            }
+        }
+    }
+};
+
+// Create GitLab Issue
+window.createGitLabIssue = async (projectName) => {
+    const token = LocalStorage.getItem('gitlabToken');
+    if (!token) {
+        DOM.showToast('Configure o token do GitLab para continuar.', 'error');
+        openSetupModal();
+        document.getElementById('glTokenInput').focus();
+        return;
+    }
+
+    const prs = currentData.prs.filter(p => p.project === projectName && p.approved);
+    if (!prs.length) return;
+
+    // Get version info from the first PR (they should be synced)
+    const info = prs[0];
+    
+    if (!info.version) {
+        DOM.showToast('Nenhuma versão definida para este grupo.', 'error');
+        return;
+    }
+
+    const data = {
+        modulo: projectName,
+        versao: info.version,
+        pipeline_url: info.pipelineLink || 'N/A',
+        rollback: info.rollback
+    };
+
+    if (confirm(`Criar issue de deploy no GitLab para "${projectName} - ${info.version}"?`)) {
+        try {
+            DOM.showLoading(true);
+            await GitLabService.createIssue(token, data);
+            DOM.showToast('Chamado criado com sucesso no GitLab!');
+        } catch (error) {
+            DOM.showToast('Erro ao criar chamado: ' + error.message, 'error');
+        } finally {
+            DOM.showLoading(false);
+        }
+    }
+};
 
 // Start the app
 init();
