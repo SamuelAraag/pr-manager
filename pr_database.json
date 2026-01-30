@@ -222,7 +222,9 @@
       "needsCorrection": false,
       "correctionReason": null,
       "approvedBy": "Samuel Santos",
-      "approvedAt": "2026-01-30T22:12:54.282Z"
+      "approvedAt": "2026-01-30T22:12:54.282Z",
+      "versionRequested": true,
+      "versionBatchId": "0RBNITdrnv"
     },
     {
       "id": "7aRqMahx",
@@ -238,8 +240,10 @@
       "approvedBy": "Samuel Santos",
       "approvedAt": "2026-01-30T22:13:38.726Z",
       "needsCorrection": false,
-      "correctionReason": null
+      "correctionReason": null,
+      "versionRequested": true,
+      "versionBatchId": "0RBNITdrnv"
     }
   ],
-  "last_updated": "2026-01-30T22:13:38.726Z"
+  "last_updated": "2026-01-30T22:14:22.819Z"
 }
