@@ -110,7 +110,8 @@ function updateUserDisplay(userName) {
     const profileImages = {
         'Itallo Cerqueira': 'src/assets/profiles/itallo-cerqueira.jpeg',
         'Rodrigo Barbosa': 'src/assets/profiles/rodrigo-barbosa.jpeg',
-        'Kemilly Alvez': 'src/assets/profiles/kemilly-alvez.jpeg'
+        'Kemilly Alvez': 'src/assets/profiles/kemilly-alvez.jpeg',
+        'Samuel Santos': 'src/assets/profiles/samuel-santos-profile.png'
     };
 
     const imageSrc = profileImages[userName] || 'src/assets/profiles/default-profile.png';
@@ -138,7 +139,6 @@ document.querySelectorAll('.profile-item').forEach(item => {
         
         if (userName === 'Samuel Santos') {
             EffectService.triggerGodMode();
-            DOM.showToast('⚡ GOD MODE ACTIVATED ⚡', 'success');
         }
 
         LocalStorage.setItem('appUser', userName);
