@@ -90,8 +90,23 @@ function openSetupModal() {
 }
 
 function updateUserDisplay(userName) {
-    const initials = userName.split(' ').map(n => n[0]).join('');
-    currentUserDisplay.textContent = initials;
+    // Defines profile images
+    const profileImages = {
+        'Itallo Cerqueira': 'src/assets/profiles/itallo-cerqueira.jpeg',
+        'Rodrigo Barbosa': 'src/assets/profiles/rodrigo-barbosa.jpeg'
+    };
+
+    const imageSrc = profileImages[userName] || 'src/assets/profiles/default-profile.png';
+
+    currentUserDisplay.innerHTML = ''; // Clear text
+    currentUserDisplay.style.background = 'transparent';
+    currentUserDisplay.style.alignItems = 'normal';
+    currentUserDisplay.style.justifyContent = 'normal';
+    
+    currentUserDisplay.appendChild(Object.assign(document.createElement('img'), {
+        src: imageSrc,
+        style: "width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;"
+    }));
 
     // Show/Hide Verify Button based on user
     if (userName === 'Samuel Santos') {

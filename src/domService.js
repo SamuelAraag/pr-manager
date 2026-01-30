@@ -145,6 +145,17 @@ function renderGroupedTable(data, containerId, onEdit, isApprovedTable = false) 
                 <td><span class="tag">${pr.project || '-'}</span></td>
                 <td style="font-weight: 500;">${pr.summary || '-'}</td>
                 <td>${pr.dev || '-'}</td>
+                ${isApprovedTable ? `
+                <td>
+                    <div style="font-size: 0.85rem;">
+                        <span style="color: #aff5b4;">${pr.version || '-'}</span>
+                    </div>
+                </td>
+                <td>
+                    <div style="font-size: 0.85rem;">
+                         ${pr.rollback ? `<small style="color: #ffa198;">${pr.rollback}</small>` : '-'}
+                    </div>
+                </td>` : ''}
                 <td><span class="status-badge" style="background: ${pr.reqVersion === 'ok' ? '#238636' : '#30363d'}">${pr.reqVersion || '-'}</span></td>
                 <td>
                     <div style="display: flex; gap: 0.8rem;">
