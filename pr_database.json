@@ -223,8 +223,12 @@
       "correctionReason": null,
       "approvedBy": "Samuel Santos",
       "approvedAt": "2026-01-30T22:12:54.282Z",
-      "versionRequested": true,
-      "versionBatchId": "0RBNITdrnv"
+      "versionRequested": false,
+      "versionBatchId": "0RBNITdrnv",
+      "version": "22.22.22.2234",
+      "pipelineLink": "http://www.google.com",
+      "rollback": "22.22.22.2234",
+      "versionGroupStatus": "done"
     },
     {
       "id": "7aRqMahx",
@@ -241,9 +245,13 @@
       "approvedAt": "2026-01-30T22:13:38.726Z",
       "needsCorrection": false,
       "correctionReason": null,
-      "versionRequested": true,
-      "versionBatchId": "0RBNITdrnv"
+      "versionRequested": false,
+      "versionBatchId": "0RBNITdrnv",
+      "version": "22.22.22.2234",
+      "pipelineLink": "http://www.google.com",
+      "rollback": "22.22.22.2234",
+      "versionGroupStatus": "done"
     }
   ],
-  "last_updated": "2026-01-30T22:14:22.819Z"
+  "last_updated": "2026-01-30T22:15:18.923Z"
 }
