@@ -479,7 +479,9 @@ function createApprovedCard(projectName, projectPrs, currentUser, batchId) {
     card.className = 'data-card';
     card.style.marginBottom = '2rem'; 
     let requestVersionBtn = '';
-    if (!hasVersionInfo && !isRequestingVersion) {
+    
+    const canRequestVersion = currentUser === 'Samuel Santos' || currentUser === 'Kemilly Vitória';
+    if (!hasVersionInfo && !isRequestingVersion && canRequestVersion) {
             requestVersionBtn = `
             <button class="btn btn-primary" style="padding: 0.3rem 0.8rem; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; margin-left:15px;" onclick="window.requestVersion('${projectPrs[0].id}')">
                 <i data-lucide="package-check" style="width: 14px;"></i>

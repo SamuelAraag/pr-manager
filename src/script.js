@@ -3,7 +3,6 @@ import * as API from './apiService.js';
 import * as DOM from './domService.js';
 import { GitLabService } from './gitlabService.js';
 import { EffectService } from './effectService.js';
-import { IdService } from './idService.js';
 
 let currentData = { prs: [] };
 let currentSha = null;
@@ -389,13 +388,14 @@ prForm.addEventListener('submit', async (e) => {
         await loadData();
         
         const prId = document.getElementById('prId').value;
+        const prLinkValue = document.getElementById('prLink').value;
 
         const pr = {
-            id: prId || IdService.generateUniqueId(IdService.extractIds(currentData.prs)),
+            id: prId || prLinkValue,
             project: document.getElementById('project').value,
             dev: devInputForForm.value,
             summary: document.getElementById('summary').value,
-            prLink: document.getElementById('prLink').value,
+            prLink: prLinkValue,
             taskLink: document.getElementById('taskLink').value,
             teamsLink: document.getElementById('teamsLink').value,
             reqVersion: 'ok',
@@ -537,8 +537,6 @@ window.saveGroupVersion = async (batchId) => {
 };
 
 window.requestVersion = async (prId) => {
-    // Find the PR by ID to get the project name
-    debugger
     const referencePr = currentData.prs.find(p => p.id === prId);
     if (!referencePr) {
         DOM.showToast('PR não encontrado.', 'error');
@@ -556,9 +554,7 @@ window.requestVersion = async (prId) => {
 
     if (confirm(`Solicitar versão para ${prs.length} PRs de "${projectName}"?`)) {
         let changed = false;
-        // Generate Unique Batch ID
-        const existingIds = IdService.extractIds(currentData.prs, 'versionBatchId');
-        const newBatchId = IdService.generateUniqueId(existingIds, 10);
+        const newBatchId = `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         
         currentData.prs.forEach(pr => {
             if (pr.project === projectName && pr.approved && !pr.version && !pr.versionBatchId) {
