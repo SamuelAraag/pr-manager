@@ -1,4 +1,5 @@
 import { getItem } from './localStorageService.js';
+import { ApiConstants } from './constants/apiConstants.js';
 
 const API_BASE_URL = 'https://api.github.com';
 
@@ -27,7 +28,7 @@ function getHeaders() {
 }
 
 async function fetchPRs() {
-    const url = 'https://localhost:7268/api/PullRequests';
+    const url = `${ApiConstants.BASE_URL}/PullRequests`;
     
     try {
         const response = await fetch(url, { 
@@ -58,7 +59,7 @@ async function fetchPRs() {
 }
 
 async function fetchUsers() {
-    const url = 'https://localhost:7268/api/Users';
+    const url = `${ApiConstants.BASE_URL}/Users`;
     
     try {
         const response = await fetch(url, {
@@ -87,7 +88,7 @@ async function fetchUsers() {
 }
 
 async function createPR(prData) {
-    const url = 'https://localhost:7268/api/PullRequests';
+    const url = `${ApiConstants.BASE_URL}/PullRequests`;
     
     try {
         const response = await fetch(url, {
@@ -114,7 +115,7 @@ async function createPR(prData) {
 }
 
 async function updatePR(prId, prData) {
-    const url = `https://localhost:7268/api/PullRequests/${prId}`;
+    const url = `${ApiConstants.BASE_URL}/PullRequests/${prId}`;
     
     try {
         const response = await fetch(url, {
@@ -139,7 +140,7 @@ async function updatePR(prId, prData) {
     }
 }
 async function requestCorrection(prId) {
-    const url = `https://localhost:7268/api/PullRequests/${prId}/request-correction`;
+    const url = `${ApiConstants.BASE_URL}/PullRequests/${prId}/request-correction`;
     
     try {
         const response = await fetch(url, {
@@ -167,7 +168,7 @@ async function requestCorrection(prId) {
 
 
 async function requestVersionBatch(prIds) {
-    const url = `https://localhost:7268/api/VersionBatches/request-version`;
+    const url = `${ApiConstants.BASE_URL}/VersionBatches/request-version`;
     
     try {
         const response = await fetch(url, {
@@ -194,7 +195,7 @@ async function requestVersionBatch(prIds) {
 }
 
 async function saveVersionBatch(batchData) {
-    const url = `https://localhost:7268/api/VersionBatches/save-version`;
+    const url = `${ApiConstants.BASE_URL}/VersionBatches/save-version`;
     
     try {
         const response = await fetch(url, {
@@ -221,7 +222,7 @@ async function saveVersionBatch(batchData) {
 }
 
 async function fetchBatches() {
-    const url = `https://localhost:7268/api/VersionBatches`;
+    const url = `${ApiConstants.BASE_URL}/VersionBatches`;
     try {
         const response = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
         return response.ok ? await response.json() : [];
@@ -232,7 +233,7 @@ async function fetchBatches() {
 }
 
 async function fetchBatchById(batchId) {
-    const url = `https://localhost:7268/api/VersionBatches/by-id/${batchId}`;
+    const url = `${ApiConstants.BASE_URL}/VersionBatches/by-id/${batchId}`;
     try {
         const response = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
         return response.ok ? await response.json() : null;
@@ -243,7 +244,7 @@ async function fetchBatchById(batchId) {
 }
 
 async function updateBatch(id, batchData) {
-    const url = `https://localhost:7268/api/VersionBatches/${id}`;
+    const url = `${ApiConstants.BASE_URL}/VersionBatches/${id}`;
     try {
         const response = await fetch(url, {
             method: 'PUT',
@@ -258,7 +259,7 @@ async function updateBatch(id, batchData) {
 }
 
 async function approvePR(prId, approverId) {
-    const url = `https://localhost:7268/api/PullRequests/${prId}/approve`;
+    const url = `${ApiConstants.BASE_URL}/PullRequests/${prId}/approve`;
     
     try {
         const response = await fetch(url, {
@@ -285,7 +286,7 @@ async function approvePR(prId, approverId) {
 }
 
 async function markPrFixed(prId) {
-    const url = `https://localhost:7268/api/PullRequests/${prId}/mark-fixed`;
+    const url = `${ApiConstants.BASE_URL}/PullRequests/${prId}/mark-fixed`;
     
     try {
         const response = await fetch(url, {
