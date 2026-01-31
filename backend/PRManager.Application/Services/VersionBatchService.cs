@@ -130,8 +130,6 @@ public class VersionBatchService : IVersionBatchService
                 .ThenInclude(p => p.ApprovedBy)
             .Include(v => v.PullRequests)
                 .ThenInclude(p => p.Sprint)
-            .Include(v => v.PullRequests)
-                .ThenInclude(p => p.VersionBatchRef)
             .FirstOrDefaultAsync(v => v.BatchId == dto.BatchId);
 
         if (versionBatch == null)
