@@ -36,7 +36,7 @@ public class CreatePullRequestDto
 {
     public string Project { get; set; } = string.Empty;
     public string Summary { get; set; } = string.Empty;
-    public string DevName { get; set; } = string.Empty;
+    public int DevId { get; set; }
     public string PrLink { get; set; } = string.Empty;
     public string? TaskLink { get; set; }
     public string? TeamsLink { get; set; }
@@ -46,6 +46,7 @@ public class UpdatePullRequestDto
 {
     public string? Project { get; set; }
     public string? Summary { get; set; }
+    public int? DevId { get; set; }
     public string? PrLink { get; set; }
     public string? TaskLink { get; set; }
     public string? TeamsLink { get; set; }

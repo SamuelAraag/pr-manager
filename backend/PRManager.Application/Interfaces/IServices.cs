@@ -14,7 +14,7 @@ public interface IPullRequestService
     Task<IEnumerable<PullRequestDto>> GetAllAsync();
     Task<PullRequestDto?> GetByIdAsync(int id);
     Task<PullRequestDto> CreateAsync(CreatePullRequestDto dto, int userId);
-    Task<PullRequestDto?> UpdateAsync(int id, UpdatePullRequestDto dto, int userId);
+    Task<PullRequestDto?> UpdateAsync(int id, UpdatePullRequestDto dto);
     Task<bool> DeleteAsync(int id, int userId);
     Task<PullRequestDto?> ApproveAsync(int id, int approverId);
     Task<PullRequestDto?> RequestCorrectionAsync(int id, RequestCorrectionDto dto);

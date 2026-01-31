@@ -51,8 +51,7 @@ public class PullRequestsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult<PullRequestDto>> Update(int id, [FromBody] UpdatePullRequestDto dto)
     {
-        var userId = GetCurrentUserId();
-        var pr = await _prService.UpdateAsync(id, dto, userId);
+        var pr = await _prService.UpdateAsync(id, dto);
         if (pr == null)
             return NotFound();
         return Ok(pr);

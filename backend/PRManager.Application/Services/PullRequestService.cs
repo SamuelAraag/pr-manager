@@ -41,23 +41,9 @@ public class PullRequestService : IPullRequestService
     
     public async Task<PullRequestDto> CreateAsync(CreatePullRequestDto dto, int userId)
     {
-        // Find or create user by name
-        var dev = await _context.Users
-            .FirstOrDefaultAsync(u => u.Name == dto.DevName);
-            
-        if (dev == null)
-        {
-            // Create a basic user if not found (for migration compatibility)
-            dev = new User
-            {
-                Name = dto.DevName,
-                Email = $"{dto.DevName.Replace(" ", ".").ToLower()}@company.com",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
-                Role = UserRole.Dev
-            };
-            _context.Users.Add(dev);
-            await _context.SaveChangesAsync();
-        }
+        // Verify dev exists
+        var dev = await _context.Users.FindAsync(dto.DevId)
+            ?? throw new ArgumentException($"Developer with ID {dto.DevId} not found");
         
         // Get active sprint
         var activeSprint = await _context.Sprints
@@ -68,7 +54,7 @@ public class PullRequestService : IPullRequestService
             ExternalId = Guid.NewGuid().ToString(),
             Project = dto.Project,
             Summary = dto.Summary,
-            DevId = dev.Id,
+            DevId = dto.DevId,
             PrLink = dto.PrLink,
             TaskLink = dto.TaskLink,
             TeamsLink = dto.TeamsLink,
@@ -89,17 +75,13 @@ public class PullRequestService : IPullRequestService
         return MapToDto(pr);
     }
     
-    public async Task<PullRequestDto?> UpdateAsync(int id, UpdatePullRequestDto dto, int userId)
+    public async Task<PullRequestDto?> UpdateAsync(int id, UpdatePullRequestDto dto)
     {
         var pr = await _context.PullRequests
             .Include(p => p.Dev)
             .FirstOrDefaultAsync(p => p.Id == id);
             
         if (pr == null)
-            return null;
-        
-        // Only dev who created it can update
-        if (pr.DevId != userId)
             return null;
         
         if (!string.IsNullOrEmpty(dto.Project))
@@ -113,8 +95,24 @@ public class PullRequestService : IPullRequestService
         if (dto.TeamsLink != null)
             pr.TeamsLink = dto.TeamsLink;
             
+        // Handle DevId change
+        if (dto.DevId.HasValue && dto.DevId.Value != pr.DevId)
+        {
+            var newDev = await _context.Users.FindAsync(dto.DevId.Value);
+            if (newDev == null)
+                throw new ArgumentException($"Developer with ID {dto.DevId.Value} not found");
+            
+            pr.DevId = dto.DevId.Value;
+        }
+            
         pr.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
+        
+        // Reload with updated dev
+        pr = await _context.PullRequests
+            .Include(p => p.Dev)
+            .Include(p => p.Sprint)
+            .FirstAsync(p => p.Id == id);
         
         return MapToDto(pr);
     }

@@ -1,11 +1,101 @@
 import * as LocalStorage from './localStorageService.js';
 import * as API from './apiService.js';
 import * as DOM from './domService.js';
-import { GitLabService } from './gitlabService.js';
+import * as GitLabService from './gitlabService.js';
 import { EffectService } from './effectService.js';
 
 let currentData = { prs: [] };
+let availableUsers = [];
 const validDevs = ['Rodrigo Barbosa', 'Itallo Cerqueira', 'Marcos Paulo', 'Samuel Santos', 'Kemilly Alvez'];
+
+// Load users from API
+async function loadUsers() {
+    try {
+        const users = await API.fetchUsers();
+        if (users && users.length > 0) {
+            availableUsers = users;
+            console.log('Usuários carregados:', availableUsers);
+            return true;
+        } else {
+            console.warn('Nenhum usuário encontrado na API, usando lista padrão');
+            return false;
+        }
+    } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+        return false;
+    }
+}
+
+// Render profile selection dynamically
+function renderProfileSelection() {
+    const profilesGrid = document.querySelector('.profiles-grid');
+    if (!profilesGrid) return;
+    
+    profilesGrid.innerHTML = '';
+    
+    const usersToShow = availableUsers.length > 0 ? availableUsers : 
+        validDevs.map((name, index) => ({ id: index + 1, name, profileImage: null }));
+    
+    usersToShow.forEach(user => {
+        const profileItem = document.createElement('div');
+        profileItem.className = 'profile-item';
+        profileItem.setAttribute('data-user', user.name);
+        profileItem.setAttribute('data-user-id', user.id);
+        
+        const defaultImages = {
+            'Itallo Cerqueira': 'src/assets/profiles/itallo-cerqueira.jpeg',
+            'Rodrigo Barbosa': 'src/assets/profiles/rodrigo-barbosa.jpeg',
+            'Kemilly Alvez': 'src/assets/profiles/kemilly-alvez.jpeg',
+            'Samuel Santos': 'src/assets/profiles/samuel-santos-profile.png'
+        };
+        
+        const imageSrc = user.profileImage || defaultImages[user.name] || 'src/assets/profiles/default-profile.png';
+        
+        profileItem.innerHTML = `
+            <img class="avatar" src="${imageSrc}">
+            <span>${user.name}</span>
+        `;
+        
+        profilesGrid.appendChild(profileItem);
+    });
+    
+    // Re-attach event listeners
+    attachProfileListeners();
+}
+
+// Populate developer datalist
+function populateDevList() {
+    const devList = document.getElementById('devList');
+    if (!devList) return;
+    
+    devList.innerHTML = '';
+    
+    const usersToShow = availableUsers.length > 0 ? availableUsers : 
+        validDevs.map((name, index) => ({ id: index + 1, name }));
+    
+    usersToShow.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.name;
+        devList.appendChild(option);
+    });
+}
+
+// Get user ID by name
+function getUserIdByName(userName) {
+    if (availableUsers.length > 0) {
+        const user = availableUsers.find(u => u.name === userName);
+        return user ? user.id : null;
+    }
+    // Fallback to hardcoded mapping
+    const devMap = {
+        'Rodrigo Barbosa': 1,
+        'Itallo Cerqueira': 2,
+        'Marcos Paulo': 3,
+        'Samuel Santos': 4,
+        'Kemilly Alvez': 5
+    };
+    return devMap[userName] || null;
+}
 
 const prModal = document.getElementById('prModal');
 const setupModal = document.getElementById('setupModal');
@@ -77,6 +167,11 @@ function closeAllModals() {
 async function init() {
     LocalStorage.init();
     
+    // Load users from API first
+    await loadUsers();
+    renderProfileSelection();
+    populateDevList();
+    
     const appUser = LocalStorage.getItem('appUser');
     if (!appUser) {
         showProfileSelection();
@@ -90,6 +185,31 @@ async function init() {
             await loadData();
         }
     }
+}
+
+function attachProfileListeners() {
+    document.querySelectorAll('.profile-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const userName = item.getAttribute('data-user');
+            const userId = item.getAttribute('data-user-id');
+            
+            if (userName === 'Samuel Santos') {
+                EffectService.triggerGodMode();
+            }
+
+            LocalStorage.setItem('appUser', userName);
+            LocalStorage.setItem('appUserId', userId);
+            updateUserDisplay(userName);
+            profileScreen.style.display = 'none';
+            
+            const token = LocalStorage.getItem('githubToken');
+            if (!token) {
+                setupModal.style.display = 'flex';
+            } else {
+                loadData(true);
+            }
+        });
+    });
 }
 
 function showProfileSelection() {
@@ -134,27 +254,6 @@ function updateUserDisplay(userName) {
         setupBtn.style.display = userName === 'Samuel Santos' ? 'inline-flex' : 'none';
     }
 }
-
-document.querySelectorAll('.profile-item').forEach(item => {
-    item.addEventListener('click', () => {
-        const userName = item.getAttribute('data-user');
-        
-        if (userName === 'Samuel Santos') {
-            EffectService.triggerGodMode();
-        }
-
-        LocalStorage.setItem('appUser', userName);
-        updateUserDisplay(userName);
-        profileScreen.style.display = 'none';
-        
-        const token = LocalStorage.getItem('githubToken');
-        if (!token) {
-            setupModal.style.display = 'flex';
-        } else {
-            loadData(true);
-        }
-    });
-});
 
 async function loadData(skipLoading = false) {
     const token = LocalStorage.getItem('githubToken');
@@ -345,7 +444,10 @@ devInput.addEventListener('keydown', (e) => {
 });
 
 devInput.addEventListener('change', (e) => {
-    if (e.target.value && !validDevs.includes(e.target.value)) {
+    const isValid = validDevs.includes(e.target.value) || 
+                    availableUsers.find(u => u.name === e.target.value);
+    
+    if (e.target.value && !isValid) {
         DOM.showToast('Desenvolvedor inválido. Escolha um da lista.', 'error');
         e.target.value = '';
     }
@@ -374,9 +476,10 @@ prForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const devInputForForm = document.getElementById('dev');
-    const prId = document.getElementById('prId').value;
+    const prIdInput = document.getElementById('prId').value;
+    const devName = devInputForForm.value;
 
-    if (!validDevs.includes(devInputForForm.value)) {
+    if (!validDevs.includes(devName) && !availableUsers.find(u => u.name === devName)) {
         DOM.showToast('Por favor, selecione um desenvolvedor válido da lista.', 'error');
         devInputForForm.focus();
         return;
@@ -385,46 +488,39 @@ prForm.addEventListener('submit', async (e) => {
     try {
         DOM.showLoading(true);
         
-        await loadData();
+        // Get devId from user name
+        const devId = getUserIdByName(devName);
         
-        const prId = document.getElementById('prId').value;
-        const prLinkValue = document.getElementById('prLink').value;
-
-        const pr = {
-            id: prId || prLinkValue,
-            project: document.getElementById('project').value,
-            dev: devInputForForm.value,
-            summary: document.getElementById('summary').value,
-            prLink: prLinkValue,
-            taskLink: document.getElementById('taskLink').value,
-            teamsLink: document.getElementById('teamsLink').value,
-            reqVersion: 'ok',
-            approved: prId ? (currentData.prs.find(p => p.id === prId)?.approved || false) : false,
-            updatedAt: new Date().toISOString()
-        };
-
-        const newData = { 
-            ...currentData,
-            prs: [...currentData.prs]
-        };
-
-        if (prId) {
-            const index = newData.prs.findIndex(p => p.id === prId);
-            if (index !== -1) {
-                newData.prs[index] = pr;
-            }
-        } else {
-            newData.prs.push(pr);
+        if (!devId) {
+            DOM.showToast('Erro: Desenvolvedor não encontrado', 'error');
+            return;
         }
+        
+        // Preparar dados do PR
+        const prData = {
+            project: document.getElementById('project').value,
+            devId: devId,
+            summary: document.getElementById('summary').value,
+            prLink: document.getElementById('prLink').value || '',
+            taskLink: document.getElementById('taskLink').value || '',
+            teamsLink: document.getElementById('teamsLink').value || ''
+        };
 
-        console.log('Tentando salvar PR:', pr);
+        let savedPR;
         
-        const result = await API.savePRs(newData);
+        if (prIdInput) {
+            // Atualizar PR existente
+            savedPR = await API.updatePR(prIdInput, prData);
+            DOM.showToast('PR atualizado com sucesso!');
+        } else {
+            // Criar novo PR
+            savedPR = await API.createPR(prData);
+            DOM.showToast('PR criado com sucesso!');
+        }
         
-        currentData = result.newData;
+        // Recarregar dados
+        await loadData(true);
         
-        DOM.renderTable(currentData.prs, openEditModal);
-        DOM.showToast('Sucesso! Dados salvos na API.');
         prModal.style.display = 'none';
         prForm.reset();
     } catch (error) {

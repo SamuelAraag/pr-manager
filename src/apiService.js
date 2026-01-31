@@ -27,7 +27,7 @@ function getHeaders() {
 }
 
 async function fetchPRs() {
-    const url = 'https://878b13e76b0b.ngrok-free.app/api/PullRequests';
+    const url = 'https://localhost:7268/api/PullRequests';
     
     try {
         const response = await fetch(url, { 
@@ -54,6 +54,88 @@ async function fetchPRs() {
     } catch (error) {
         console.error('Falha na requisição GET:', error);
         return null;
+    }
+}
+
+async function fetchUsers() {
+    const url = 'https://localhost:7268/api/Users';
+    
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
+            cache: 'no-store'
+        });
+
+        if (!response.ok) {
+            if (response.status === 404) {
+                return [];
+            }
+            throw new Error(`Erro ao buscar usuários: ${response.statusText}`);
+        }
+
+        const users = await response.json();
+        console.log('Usuários recebidos:', users);
+        return users;
+    } catch (error) {
+        console.error('Falha ao buscar usuários:', error);
+        return [];
+    }
+}
+
+async function createPR(prData) {
+    const url = 'https://localhost:7268/api/PullRequests';
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify(prData)
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.json();
+            throw new Error(`Erro ao criar PR: ${errorBody.message || response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Falha ao criar PR:', error);
+        throw error;
+    }
+}
+
+async function updatePR(prId, prData) {
+    const url = `https://localhost:7268/api/PullRequests/${prId}`;
+    
+    try {
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(prData)
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.json();
+            throw new Error(`Erro ao atualizar PR: ${errorBody.message || response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Falha ao atualizar PR:', error);
+        throw error;
     }
 }
 
@@ -92,4 +174,4 @@ async function savePRs(dataToSave, sha) {
     }
 }
 
-export { fetchPRs, savePRs };
+export { fetchPRs, fetchUsers, createPR, updatePR, savePRs };
