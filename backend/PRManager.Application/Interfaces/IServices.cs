@@ -27,10 +27,6 @@ public interface IPullRequestService
 
 public interface IAutomationConfigService
 {
-    Task<IEnumerable<AutomationConfigDto>> GetAllAsync();
-    Task<AutomationConfigDto?> GetByKeyAsync(string key);
-    Task<AutomationConfigDto> CreateAsync(CreateAutomationConfigDto dto);
-    Task<AutomationConfigDto?> UpdateAsync(string key, UpdateAutomationConfigDto dto);
-    Task<bool> DeleteAsync(string key);
-    Task<string?> GetDecryptedValueAsync(string key);
+    Task<AutomationConfigDto> GetConfigAsync();
+    Task<AutomationConfigDto> UpdateConfigAsync(UpdateAutomationConfigDto dto);
 }

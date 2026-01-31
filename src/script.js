@@ -217,11 +217,8 @@ function showProfileSelection() {
     profileScreen.style.display = 'flex';
 }
 
-function openSetupModal() {
-    ghTokenInput.value = LocalStorage.getItem('githubToken') || '';
-    document.getElementById('glTokenInput').value = LocalStorage.getItem('gitlabToken') || '';
-    setupModal.style.display = 'flex';
-}
+// openSetupModal is defined below near the save button logic
+
 
 function updateUserDisplay(userName) {
     const profileImages = {
@@ -444,18 +441,59 @@ document.querySelectorAll('.close-btn, .close-modal').forEach(btn => {
     btn.addEventListener('click', closeAllModals);
 });
 
-document.getElementById('saveConfigBtn').addEventListener('click', () => {
+function openSetupModal() {
+    DOM.showLoading(true);
+    API.getAutomationConfig().then(config => {
+        if (config) {
+            ghTokenInput.value = config.githubToken || '';
+            document.getElementById('glTokenInput').value = config.gitlabToken || '';
+        } else {
+            ghTokenInput.value = LocalStorage.getItem('githubToken') || '';
+            document.getElementById('glTokenInput').value = LocalStorage.getItem('gitlabToken') || '';
+        }
+    }).catch(err => {
+        console.error('Erro ao buscar config:', err);
+        ghTokenInput.value = LocalStorage.getItem('githubToken') || '';
+        document.getElementById('glTokenInput').value = LocalStorage.getItem('gitlabToken') || '';
+    }).finally(() => {
+        DOM.showLoading(false);
+        setupModal.style.display = 'flex';
+    });
+}
+
+// ...
+
+document.getElementById('saveConfigBtn').addEventListener('click', async () => {
     const ghToken = ghTokenInput.value.trim();
     const glToken = document.getElementById('glTokenInput').value.trim();
     
-    if (ghToken) {
+    if (!ghToken || !glToken) {
+        alert('Por favor, insira um token válido do GitHub e GitLab.');
+        return;
+    }
+
+    if (!confirm('Deseja realmente salvar essas configurações? Verifique se os tokens estão corretos.')) {
+        return;
+    }
+
+    try {
+        debugger;
+        DOM.showLoading(true);
+        await API.saveAutomationConfig({
+            githubToken: ghToken,
+            gitlabToken: glToken
+        });
+
         LocalStorage.setItem('githubToken', ghToken);
         if (glToken) LocalStorage.setItem('gitlabToken', glToken);
         
+        DOM.showToast('Configurações salvas com sucesso!');
         setupModal.style.display = 'none';
         loadData();
-    } else {
-        alert('Por favor, insira um token válido do GitHub.');
+    } catch (error) {
+        DOM.showToast('Erro ao salvar configurações: ' + error.message, 'error');
+    } finally {
+        DOM.showLoading(false);
     }
 });
 
@@ -475,7 +513,6 @@ prForm.addEventListener('submit', async (e) => {
     try {
         DOM.showLoading(true);
         
-        // Get devId from user name
         const devId = getUserIdByName(devName);
         
         if (!devId) {
@@ -483,7 +520,6 @@ prForm.addEventListener('submit', async (e) => {
             return;
         }
         
-        // Preparar dados do PR
         const prData = {
             project: document.getElementById('project').value,
             devId: devId,
@@ -496,16 +532,13 @@ prForm.addEventListener('submit', async (e) => {
         let savedPR;
         
         if (prIdInput) {
-            // Atualizar PR existente
             savedPR = await API.updatePR(prIdInput, prData);
             DOM.showToast('PR atualizado com sucesso!');
         } else {
-            // Criar novo PR
             savedPR = await API.createPR(prData);
             DOM.showToast('PR criado com sucesso!');
         }
         
-        // Recarregar dados
         await loadData(true);
         
         prModal.style.display = 'none';

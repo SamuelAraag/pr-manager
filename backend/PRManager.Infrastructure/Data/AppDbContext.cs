@@ -80,10 +80,8 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<AutomationConfig>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.Key).IsUnique();
-            entity.Property(e => e.Key).IsRequired().HasMaxLength(100);
-            entity.Property(e => e.Value).IsRequired();
-            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.GithubToken).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.GitlabToken).IsRequired().HasMaxLength(255);
         });
         
         // Seed initial data
@@ -158,40 +156,8 @@ public class AppDbContext : DbContext
             new AutomationConfig
             {
                 Id = 1,
-                Key = AutomationConfig.Keys.GitHubToken,
-                Value = "",
-                Description = "GitHub API token for repository operations",
-                IsEncrypted = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            },
-            new AutomationConfig
-            {
-                Id = 2,
-                Key = AutomationConfig.Keys.GitLabUrl,
-                Value = "https://gitlab.com",
-                Description = "GitLab base URL",
-                IsEncrypted = false,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            },
-            new AutomationConfig
-            {
-                Id = 3,
-                Key = AutomationConfig.Keys.GitLabToken,
-                Value = "",
-                Description = "GitLab API token for creating issues",
-                IsEncrypted = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            },
-            new AutomationConfig
-            {
-                Id = 4,
-                Key = AutomationConfig.Keys.GitLabProjectId,
-                Value = "",
-                Description = "GitLab project ID for issue creation",
-                IsEncrypted = false,
+                GithubToken = "",
+                GitlabToken = "",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             }

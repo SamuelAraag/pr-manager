@@ -346,4 +346,40 @@ async function savePRs(dataToSave, sha) {
     }
 }
 
-export { fetchPRs, fetchUsers, createPR, updatePR, requestCorrection, markPrFixed, approvePR, requestVersionBatch, saveVersionBatch, fetchBatches, fetchBatchById, updateBatch, savePRs };
+async function getAutomationConfig() {
+    const url = `${ApiConstants.BASE_URL}/AutomationConfig`;
+    try {
+        const response = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+        return response.ok ? await response.json() : null;
+    } catch (error) {
+        console.error('Falha ao buscar config:', error);
+        return null;
+    }
+}
+
+async function saveAutomationConfig(configData) {
+    const url = `${ApiConstants.BASE_URL}/AutomationConfig`;
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify(configData)
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.json();
+            throw new Error(`Erro ao salvar config: ${errorBody.message || response.statusText}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Falha ao salvar config:', error);
+        throw error;
+    }
+}
+
+export { fetchPRs, fetchUsers, createPR, updatePR, requestCorrection, markPrFixed, approvePR, requestVersionBatch, saveVersionBatch, fetchBatches, fetchBatchById, updateBatch, savePRs, getAutomationConfig, saveAutomationConfig };

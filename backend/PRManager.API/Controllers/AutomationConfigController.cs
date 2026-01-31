@@ -7,7 +7,7 @@ namespace PRManager.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin,Gestor")]
+//[Authorize(Roles = "Admin,Gestor")]
 public class AutomationConfigController : ControllerBase
 {
     private readonly IAutomationConfigService _configService;
@@ -18,43 +18,16 @@ public class AutomationConfigController : ControllerBase
     }
     
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<AutomationConfigDto>>> GetAll()
+    public async Task<ActionResult<AutomationConfigDto>> Get()
     {
-        var configs = await _configService.GetAllAsync();
-        return Ok(configs);
-    }
-    
-    [HttpGet("{key}")]
-    public async Task<ActionResult<AutomationConfigDto>> GetByKey(string key)
-    {
-        var config = await _configService.GetByKeyAsync(key);
-        if (config == null)
-            return NotFound();
+        var config = await _configService.GetConfigAsync();
         return Ok(config);
     }
     
     [HttpPost]
-    public async Task<ActionResult<AutomationConfigDto>> Create([FromBody] CreateAutomationConfigDto dto)
+    public async Task<ActionResult<AutomationConfigDto>> Update([FromBody] UpdateAutomationConfigDto dto)
     {
-        var config = await _configService.CreateAsync(dto);
-        return CreatedAtAction(nameof(GetByKey), new { key = config.Key }, config);
-    }
-    
-    [HttpPut("{key}")]
-    public async Task<ActionResult<AutomationConfigDto>> Update(string key, [FromBody] UpdateAutomationConfigDto dto)
-    {
-        var config = await _configService.UpdateAsync(key, dto);
-        if (config == null)
-            return NotFound();
+        var config = await _configService.UpdateConfigAsync(dto);
         return Ok(config);
-    }
-    
-    [HttpDelete("{key}")]
-    public async Task<ActionResult> Delete(string key)
-    {
-        var result = await _configService.DeleteAsync(key);
-        if (!result)
-            return NotFound();
-        return NoContent();
     }
 }
