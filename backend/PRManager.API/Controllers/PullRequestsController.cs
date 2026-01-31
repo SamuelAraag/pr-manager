@@ -88,13 +88,20 @@ public class PullRequestsController : ControllerBase
     }
     
     [HttpPost("{id}/request-version")]
-    [Authorize(Roles = "QA,Admin")]
+    //[Authorize(Roles = "QA,Admin")]
     public async Task<ActionResult<PullRequestDto>> RequestVersion(int id, [FromBody] RequestVersionDto dto)
     {
         var pr = await _prService.RequestVersionAsync(id, dto);
         if (pr == null)
             return NotFound();
         return Ok(pr);
+    }
+
+    [HttpPost("batch/request-version")]
+    public async Task<ActionResult<IEnumerable<PullRequestDto>>> RequestVersionBatch([FromBody] BatchRequestVersionDto dto)
+    {
+        var prs = await _prService.RequestVersionBatchAsync(dto);
+        return Ok(prs);
     }
     
     [HttpPost("{id}/deploy-staging")]

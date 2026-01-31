@@ -147,6 +147,7 @@ async function requestCorrection(prId) {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
             },
             body: JSON.stringify({ reason: "Correção solicitada" })
         });
@@ -164,6 +165,34 @@ async function requestCorrection(prId) {
     }
 }
 
+
+async function requestVersionBatch(prIds) {
+    const url = `https://localhost:7268/api/PullRequests/batch/request-version`;
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify({ prIds: prIds })
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.json();
+            throw new Error(`Erro ao solicitar versão em lote: ${errorBody.message || response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Falha ao solicitar versão em lote:', error);
+        throw error;
+    }
+}
+
 async function approvePR(prId, approverId) {
     const url = `https://localhost:7268/api/PullRequests/${prId}/approve`;
     
@@ -173,6 +202,7 @@ async function approvePR(prId, approverId) {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
             },
             body: JSON.stringify({ approverId: approverId })
         });
@@ -199,6 +229,7 @@ async function markPrFixed(prId) {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
             }
         });
 
@@ -250,4 +281,4 @@ async function savePRs(dataToSave, sha) {
     }
 }
 
-export { fetchPRs, fetchUsers, createPR, updatePR, requestCorrection, markPrFixed, approvePR, savePRs };
+export { fetchPRs, fetchUsers, createPR, updatePR, requestCorrection, markPrFixed, approvePR, requestVersionBatch, savePRs };

@@ -177,18 +177,38 @@ public class PullRequestService : IPullRequestService
     
     public async Task<PullRequestDto?> RequestVersionAsync(int id, RequestVersionDto dto)
     {
-        var pr = await _context.PullRequests
+        // Legacy single item wrapper or specific single logic
+        var batchDto = new BatchRequestVersionDto { PrIds = new List<int> { id }, BatchId = dto.BatchId };
+        var results = await RequestVersionBatchAsync(batchDto);
+        return results.FirstOrDefault();
+    }
+
+    public async Task<IEnumerable<PullRequestDto>> RequestVersionBatchAsync(BatchRequestVersionDto dto)
+    {
+        if (dto.PrIds == null || !dto.PrIds.Any())
+            return Enumerable.Empty<PullRequestDto>();
+
+        var batchId = !string.IsNullOrEmpty(dto.BatchId) 
+            ? dto.BatchId 
+            : $"batch_{DateTime.Now.Ticks}_{Guid.NewGuid().ToString().Substring(0, 8)}";
+
+        var prs = await _context.PullRequests
             .Include(p => p.Dev)
             .Include(p => p.Sprint)
-            .FirstOrDefaultAsync(p => p.Id == id);
-            
-        if (pr == null)
-            return null;
+            .Where(p => dto.PrIds.Contains(p.Id))
+            .ToListAsync();
+
+        foreach (var pr in prs)
+        {
+            if (string.IsNullOrEmpty(pr.Version) && string.IsNullOrEmpty(pr.VersionBatchId))
+            {
+                pr.RequestVersion(batchId);
+            }
+        }
         
-        pr.RequestVersion(dto.BatchId);
         await _context.SaveChangesAsync();
         
-        return MapToDto(pr);
+        return prs.Select(MapToDto);
     }
     
     public async Task<PullRequestDto?> DeployToStagingAsync(int id, DeployToStagingDto dto)

@@ -616,47 +616,24 @@ window.saveGroupVersion = async (batchId) => {
     }
 };
 
-window.requestVersion = async (prId) => {
-    const referencePr = currentData.prs.find(p => p.id === prId);
-    if (!referencePr) {
-        DOM.showToast('PR não encontrado.', 'error');
-        return;
-    }
+window.requestVersionBatch = async (prIds, projectName) => {
+    if (!projectName) projectName = 'este projeto';
     
-    const projectName = referencePr.project;
-    
-    // Only target backlog items (no version, no batch)
-    const prs = currentData.prs.filter(p => p.project === projectName && p.approved && !p.version && !p.versionBatchId);
-    console.log('PRs encontrados:', prs);
+    console.log('Solicitando versão para IDs:', prIds);
 
-    if (!prs.length) return;
-
-    if (confirm(`Solicitar versão para ${prs.length} PRs de "${projectName}"?`)) {
-        let changed = false;
-        const newBatchId = `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
-        currentData.prs.forEach(pr => {
-            if (pr.project === projectName && pr.approved && !pr.version && !pr.versionBatchId) {
-                pr.versionRequested = true;
-                pr.versionBatchId = newBatchId;
-                changed = true;
-            }
-        });
-
-        if (changed) {
-            try {
-                DOM.showLoading(true);
-                const result = await API.savePRs(currentData);
-                currentData = result.newData;
-                DOM.showToast('Versão solicitada com sucesso!');
-                DOM.renderTable(currentData.prs, openEditModal);
-            } catch (error) {
-                 DOM.showToast('Erro ao solicitar versão: ' + error.message, 'error');
-            } finally {
-                DOM.showLoading(false);
-            }
-        } else {
-             DOM.showToast('Nenhum PR para solicitar versão neste grupo.', 'info');
+    if (confirm(`Solicitar versão para ${prIds.length} PRs aprovados de "${projectName}"?`)) {
+        try {
+            DOM.showLoading(true);
+            
+            await API.requestVersionBatch(prIds);
+            
+            DOM.showToast('Versão solicitada com sucesso!');
+            await loadData(true);
+        } catch (error) {
+            console.error('Erro ao solicitar versão:', error);
+            DOM.showToast('Erro ao solicitar versão: ' + error.message, 'error');
+        } finally {
+            DOM.showLoading(false);
         }
     }
 };
