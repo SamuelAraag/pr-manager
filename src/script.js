@@ -64,7 +64,7 @@ window.addEventListener('keydown', (e) => {
             
             LocalStorage.setItem('appUser', adminUser);
             updateUserDisplay(adminUser);
-            loadData();
+            loadData(true);
         }
     }
 });
@@ -152,12 +152,12 @@ document.querySelectorAll('.profile-item').forEach(item => {
         if (!token) {
             setupModal.style.display = 'flex';
         } else {
-            loadData();
+            loadData(true);
         }
     });
 });
 
-async function loadData() {
+async function loadData(skipLoading = false) {
     const token = LocalStorage.getItem('githubToken');
     if (!token) {
         DOM.showToast('Token não configurado. Por favor, adicione o token do GitHub.', 'error');
@@ -165,7 +165,9 @@ async function loadData() {
         return;
     }
 
-    DOM.showLoading(true);
+    if (!skipLoading) {
+        DOM.showLoading(true);
+    }
     const result = await API.fetchPRs();
     
     if (result.data) {
@@ -175,7 +177,9 @@ async function loadData() {
     } else {
         DOM.showToast('Erro ao carregar dados do GitHub', 'error');
     }
-    DOM.showLoading(false);
+    if (!skipLoading) {
+        DOM.showLoading(false);
+    }
 }
 
 function openEditModal(pr) {
