@@ -27,34 +27,30 @@ function getHeaders() {
 }
 
 async function fetchPRs() {
-    const { owner, repo, filePath, branch } = getConfig();
-    const url = `${API_BASE_URL}/repos/${owner}/${repo}/contents/${filePath}?ref=${branch}`;
+    const url = 'https://878b13e76b0b.ngrok-free.app/api/PullRequests';
     
     try {
         const response = await fetch(url, { 
-            headers: getHeaders(),
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
             cache: 'no-store'
         });
         
         if (!response.ok) {
             if (response.status === 404) {
-                return { sha: null, data: { prs: [] } };
+                return { prs: [] };
             }
             throw new Error(`Erro ao buscar dados: ${response.statusText}`);
         }
         
-        const fileData = await response.json();
-        const decodedContent = decodeURIComponent(escape(atob(fileData.content.replace(/\s/g, ''))));
-
-        if (decodedContent.trim() === '') {
-            return { sha: fileData.sha, data: { prs: [] } };
-        }
-
-        const data = JSON.parse(decodedContent);
-        return { sha: fileData.sha, data: data };
+        const data = await response.json();
+        
+        return { prs: data };
     } catch (error) {
         console.error('Falha na requisição GET:', error);
-        return { sha: null, data: null };
+        return null;
     }
 }
 
