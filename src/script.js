@@ -587,31 +587,24 @@ window.saveGroupVersion = async (batchId) => {
     const projectName = batchPrs[0].project; // Derive project name from data
 
     if (confirm(`Aplicar versão ${version} para este lote de ${batchPrs.length} PRs de "${projectName}"?`)) {
-        let changed = false;
-        
-        currentData.prs.forEach(pr => {
-            if (pr.versionBatchId === batchId && pr.approved) {
-                pr.version = version;
-                pr.pipelineLink = pipeline;
-                pr.rollback = rollback;
-                pr.versionRequested = false;
-                pr.versionGroupStatus = 'done';
-                changed = true;
-            }
-        });
+        try {
+            DOM.showLoading(true);
+            
+            const batchData = {
+                batchId: batchId,
+                version: version,
+                pipelineLink: pipeline,
+                rollback: rollback
+            };
 
-        if (changed) {
-            try {
-                DOM.showLoading(true);
-                const result = await API.savePRs(currentData);
-                currentData = result.newData;
-                DOM.showToast('Versão aplicada com sucesso!');
-                DOM.renderTable(currentData.prs, openEditModal);
-            } catch (error) {
-                DOM.showToast('Erro ao salvar versão: ' + error.message, 'error');
-            } finally {
-                DOM.showLoading(false);
-            }
+            await API.saveVersionBatch(batchData);
+            
+            DOM.showToast('Versão aplicada com sucesso!');
+            await loadData(true);
+        } catch (error) {
+            DOM.showToast('Erro ao salvar versão: ' + error.message, 'error');
+        } finally {
+            DOM.showLoading(false);
         }
     }
 };

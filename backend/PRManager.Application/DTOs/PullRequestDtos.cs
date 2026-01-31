@@ -20,6 +20,7 @@ public class PullRequestDto
     public string? CorrectionReason { get; set; }
     public bool VersionRequested { get; set; }
     public string? VersionBatchId { get; set; }
+    public int? VersionBatchRefId { get; set; }
     public string? Version { get; set; }
     public string? PipelineLink { get; set; }
     public string? Rollback { get; set; }

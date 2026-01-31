@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<Sprint> Sprints { get; set; } = null!;
     public DbSet<AutomationConfig> AutomationConfigs { get; set; } = null!;
+    public DbSet<VersionBatch> VersionBatches { get; set; } = null!;
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -42,6 +43,20 @@ public class AppDbContext : DbContext
                 .WithMany(s => s.PullRequests)
                 .HasForeignKey(e => e.SprintId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.VersionBatchRef)
+                .WithMany(v => v.PullRequests)
+                .HasForeignKey(e => e.VersionBatchRefId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // VersionBatch configuration
+        modelBuilder.Entity<VersionBatch>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.BatchId).IsUnique();
+            entity.Property(e => e.Project).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Version).HasMaxLength(50);
         });
         
         // User configuration

@@ -87,6 +87,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPullRequestService, PullRequestService>();
 builder.Services.AddScoped<IAutomationConfigService, AutomationConfigService>();
+builder.Services.AddScoped<IVersionBatchService, VersionBatchService>();
 
 var app = builder.Build();
 

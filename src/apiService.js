@@ -167,7 +167,7 @@ async function requestCorrection(prId) {
 
 
 async function requestVersionBatch(prIds) {
-    const url = `https://localhost:7268/api/PullRequests/batch/request-version`;
+    const url = `https://localhost:7268/api/VersionBatches/request-version`;
     
     try {
         const response = await fetch(url, {
@@ -189,6 +189,70 @@ async function requestVersionBatch(prIds) {
         return data;
     } catch (error) {
         console.error('Falha ao solicitar versão em lote:', error);
+        throw error;
+    }
+}
+
+async function saveVersionBatch(batchData) {
+    const url = `https://localhost:7268/api/VersionBatches/save-version`;
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify(batchData)
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.json();
+            throw new Error(`Erro ao salvar versão em lote: ${errorBody.message || response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Falha ao salvar versão em lote:', error);
+        throw error;
+    }
+}
+
+async function fetchBatches() {
+    const url = `https://localhost:7268/api/VersionBatches`;
+    try {
+        const response = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+        return response.ok ? await response.json() : [];
+    } catch (error) {
+        console.error('Falha ao buscar lotes:', error);
+        return [];
+    }
+}
+
+async function fetchBatchById(batchId) {
+    const url = `https://localhost:7268/api/VersionBatches/by-id/${batchId}`;
+    try {
+        const response = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+        return response.ok ? await response.json() : null;
+    } catch (error) {
+        console.error('Falha ao buscar lote:', error);
+        return null;
+    }
+}
+
+async function updateBatch(id, batchData) {
+    const url = `https://localhost:7268/api/VersionBatches/${id}`;
+    try {
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(batchData)
+        });
+        return await response.json();
+    } catch (error) {
+        console.error('Falha ao atualizar lote:', error);
         throw error;
     }
 }
@@ -281,4 +345,4 @@ async function savePRs(dataToSave, sha) {
     }
 }
 
-export { fetchPRs, fetchUsers, createPR, updatePR, requestCorrection, markPrFixed, approvePR, requestVersionBatch, savePRs };
+export { fetchPRs, fetchUsers, createPR, updatePR, requestCorrection, markPrFixed, approvePR, requestVersionBatch, saveVersionBatch, fetchBatches, fetchBatchById, updateBatch, savePRs };

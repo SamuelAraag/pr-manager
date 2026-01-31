@@ -18,11 +18,11 @@ public interface IPullRequestService
     Task<bool> DeleteAsync(int id, int userId);
     Task<PullRequestDto?> ApproveAsync(int id, int approverId);
     Task<PullRequestDto?> RequestCorrectionAsync(int id, RequestCorrectionDto dto);
-    Task<PullRequestDto?> RequestVersionAsync(int id, RequestVersionDto dto);
+
     Task<PullRequestDto?> DeployToStagingAsync(int id, DeployToStagingDto dto);
     Task<PullRequestDto?> MarkAsDoneAsync(int id);
     Task<PullRequestDto?> MarkAsFixedAsync(int id);
-    Task<IEnumerable<PullRequestDto>> RequestVersionBatchAsync(BatchRequestVersionDto dto);
+
 }
 
 public interface IAutomationConfigService

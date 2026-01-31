@@ -36,7 +36,9 @@ public class PullRequest
     
     // Versioning
     public bool VersionRequested { get; set; }
-    public string? VersionBatchId { get; set; }
+    public int? VersionBatchRefId { get; set; }
+    public VersionBatch? VersionBatchRef { get; set; }
+    
     public string? Version { get; set; }
     public string? PipelineLink { get; set; }
     public string? Rollback { get; set; }
@@ -76,10 +78,9 @@ public class PullRequest
         UpdatedAt = DateTime.UtcNow;
     }
     
-    public void RequestVersion(string batchId)
+    public void RequestVersion()
     {
         VersionRequested = true;
-        VersionBatchId = batchId;
         Status = PRStatus.VersionRequested;
         UpdatedAt = DateTime.UtcNow;
     }
@@ -96,6 +97,16 @@ public class PullRequest
         UpdatedAt = DateTime.UtcNow;
     }
     
+    public void SetVersionBatch(string version, string pipelineLink, string rollback)
+    {
+        Version = version;
+        PipelineLink = pipelineLink;
+        Rollback = rollback;
+        VersionRequested = false;
+        VersionGroupStatus = "done";
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void MarkAsDone()
     {
         VersionGroupStatus = "done";

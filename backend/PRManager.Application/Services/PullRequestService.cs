@@ -22,6 +22,7 @@ public class PullRequestService : IPullRequestService
             .Include(p => p.Dev)
             .Include(p => p.ApprovedBy)
             .Include(p => p.Sprint)
+            .Include(p => p.VersionBatchRef)
             .OrderByDescending(p => p.UpdatedAt)
             .ToListAsync();
             
@@ -175,42 +176,6 @@ public class PullRequestService : IPullRequestService
         return MapToDto(pr);
     }
     
-    public async Task<PullRequestDto?> RequestVersionAsync(int id, RequestVersionDto dto)
-    {
-        // Legacy single item wrapper or specific single logic
-        var batchDto = new BatchRequestVersionDto { PrIds = new List<int> { id }, BatchId = dto.BatchId };
-        var results = await RequestVersionBatchAsync(batchDto);
-        return results.FirstOrDefault();
-    }
-
-    public async Task<IEnumerable<PullRequestDto>> RequestVersionBatchAsync(BatchRequestVersionDto dto)
-    {
-        if (dto.PrIds == null || !dto.PrIds.Any())
-            return Enumerable.Empty<PullRequestDto>();
-
-        var batchId = !string.IsNullOrEmpty(dto.BatchId) 
-            ? dto.BatchId 
-            : $"batch_{DateTime.Now.Ticks}_{Guid.NewGuid().ToString().Substring(0, 8)}";
-
-        var prs = await _context.PullRequests
-            .Include(p => p.Dev)
-            .Include(p => p.Sprint)
-            .Where(p => dto.PrIds.Contains(p.Id))
-            .ToListAsync();
-
-        foreach (var pr in prs)
-        {
-            if (string.IsNullOrEmpty(pr.Version) && string.IsNullOrEmpty(pr.VersionBatchId))
-            {
-                pr.RequestVersion(batchId);
-            }
-        }
-        
-        await _context.SaveChangesAsync();
-        
-        return prs.Select(MapToDto);
-    }
-    
     public async Task<PullRequestDto?> DeployToStagingAsync(int id, DeployToStagingDto dto)
     {
         var pr = await _context.PullRequests
@@ -283,7 +248,8 @@ public class PullRequestService : IPullRequestService
             NeedsCorrection = pr.NeedsCorrection,
             CorrectionReason = pr.CorrectionReason,
             VersionRequested = pr.VersionRequested,
-            VersionBatchId = pr.VersionBatchId,
+            VersionBatchId = pr.VersionBatchRef?.BatchId,
+            VersionBatchRefId = pr.VersionBatchRefId,
             Version = pr.Version,
             PipelineLink = pr.PipelineLink,
             Rollback = pr.Rollback,
