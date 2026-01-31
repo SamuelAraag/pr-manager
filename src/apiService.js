@@ -138,6 +138,82 @@ async function updatePR(prId, prData) {
         throw error;
     }
 }
+async function requestCorrection(prId) {
+    const url = `https://localhost:7268/api/PullRequests/${prId}/request-correction`;
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ reason: "Correção solicitada" })
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.json();
+            throw new Error(`Erro ao solicitar correção: ${errorBody.message || response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Falha ao solicitar correção:', error);
+        throw error;
+    }
+}
+
+async function approvePR(prId, approverId) {
+    const url = `https://localhost:7268/api/PullRequests/${prId}/approve`;
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ approverId: approverId })
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.json();
+            throw new Error(`Erro ao aprovar: ${errorBody.message || response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Falha ao aprovar PR:', error);
+        throw error;
+    }
+}
+
+async function markPrFixed(prId) {
+    const url = `https://localhost:7268/api/PullRequests/${prId}/mark-fixed`;
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.json();
+            throw new Error(`Erro ao marcar como corrigido: ${errorBody.message || response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Falha ao marcar como corrigido:', error);
+        throw error;
+    }
+}
 
 async function savePRs(dataToSave, sha) {
     const { owner, repo, filePath, branch } = getConfig();
@@ -174,4 +250,4 @@ async function savePRs(dataToSave, sha) {
     }
 }
 
-export { fetchPRs, fetchUsers, createPR, updatePR, savePRs };
+export { fetchPRs, fetchUsers, createPR, updatePR, requestCorrection, markPrFixed, approvePR, savePRs };

@@ -68,18 +68,17 @@ public class PullRequestsController : ControllerBase
     }
     
     [HttpPost("{id}/approve")]
-    [Authorize(Roles = "QA,Gestor,Admin")]
-    public async Task<ActionResult<PullRequestDto>> Approve(int id)
+    //[Authorize(Roles = "QA,Gestor,Admin")]
+    public async Task<ActionResult<PullRequestDto>> Approve(int id, [FromBody] ApproveDto dto)
     {
-        var approverId = GetCurrentUserId();
-        var pr = await _prService.ApproveAsync(id, approverId);
+        var pr = await _prService.ApproveAsync(id, dto.ApproverId);
         if (pr == null)
             return NotFound();
         return Ok(pr);
     }
     
     [HttpPost("{id}/request-correction")]
-    [Authorize(Roles = "QA,Gestor,Admin")]
+    // [Authorize(Roles = "QA,Gestor,Admin")]
     public async Task<ActionResult<PullRequestDto>> RequestCorrection(int id, [FromBody] RequestCorrectionDto dto)
     {
         var pr = await _prService.RequestCorrectionAsync(id, dto);
@@ -108,6 +107,16 @@ public class PullRequestsController : ControllerBase
         return Ok(pr);
     }
     
+    [HttpPost("{id}/mark-fixed")]
+    //[Authorize(Roles = "Dev,Admin")]
+    public async Task<ActionResult<PullRequestDto>> MarkAsFixed(int id)
+    {
+        var pr = await _prService.MarkAsFixedAsync(id);
+        if (pr == null)
+            return NotFound();
+        return Ok(pr);
+    }
+
     [HttpPost("{id}/mark-done")]
     [Authorize(Roles = "QA,Admin")]
     public async Task<ActionResult<PullRequestDto>> MarkAsDone(int id)

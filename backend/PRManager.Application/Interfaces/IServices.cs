@@ -21,6 +21,7 @@ public interface IPullRequestService
     Task<PullRequestDto?> RequestVersionAsync(int id, RequestVersionDto dto);
     Task<PullRequestDto?> DeployToStagingAsync(int id, DeployToStagingDto dto);
     Task<PullRequestDto?> MarkAsDoneAsync(int id);
+    Task<PullRequestDto?> MarkAsFixedAsync(int id);
 }
 
 public interface IAutomationConfigService

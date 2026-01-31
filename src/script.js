@@ -33,8 +33,9 @@ function renderProfileSelection() {
     
     profilesGrid.innerHTML = '';
     
-    const usersToShow = availableUsers.length > 0 ? availableUsers : 
-        validDevs.map((name, index) => ({ id: index + 1, name, profileImage: null }));
+    const usersToShow = (availableUsers.length > 0 ? availableUsers : 
+        validDevs.map((name, index) => ({ id: index + 1, name, profileImage: null })))
+        .filter(user => user.name !== 'Samuel Santos');
     
     usersToShow.forEach(user => {
         const profileItem = document.createElement('div');
@@ -336,89 +337,75 @@ document.getElementById('changeUserBtn').addEventListener('click', showProfileSe
 window.approvePr = async (prId) => {
     if (!prId) return;
 
-    if (!confirm('Aprovar este PR? Os campos principais serão bloqueados.')) {
+    if (!confirm('Tem certeza que deseja aprovar este PR?')) {
+        return;
+    }
+    
+    // Check if user is logged in
+    const appUserId = LocalStorage.getItem('appUserId');
+    if (!appUserId) {
+        DOM.showToast('Erro: Usuário não identificado. Selecione um perfil na tela inicial.', 'error');
         return;
     }
 
-    const index = currentData.prs.findIndex(p => p.id === prId);
-    if (index !== -1) {
-        currentData.prs[index].approved = true;
-        currentData.prs[index].approvedBy = 'Samuel Santos';
-        currentData.prs[index].approvedAt = new Date().toISOString();
-        currentData.prs[index].needsCorrection = false; 
-        currentData.prs[index].correctionReason = null;
-        currentData.prs[index].reqVersion = 'ok';
+    try {
+        DOM.showLoading(true);
+        await API.approvePR(prId, parseInt(appUserId));
         
-        try {
-            DOM.showLoading(true);
-            const result = await API.savePRs(currentData);
-            currentData = result.newData;
-            
-            DOM.showToast('PR Aprovado com sucesso!');
-            DOM.renderTable(currentData.prs, openEditModal);
-            
-            const prModal = document.getElementById('prModal');
-            if (prModal && prModal.style.display === 'flex') {
-                prModal.style.display = 'none';
-            }
-        } catch (error) {
-            DOM.showToast('Erro ao aprovar: ' + error.message, 'error');
-        } finally {
-            DOM.showLoading(false);
+        DOM.showToast('PR Aprovado com sucesso!');
+        await loadData(true);
+        
+        const prModal = document.getElementById('prModal');
+        if (prModal && prModal.style.display === 'flex') {
+            prModal.style.display = 'none';
         }
+    } catch (error) {
+        console.error('Erro ao aprovar:', error);
+        DOM.showToast('Erro ao aprovar: ' + error.message, 'error');
+    } finally {
+        DOM.showLoading(false);
     }
 };
 
 window.requestCorrection = async (prId) => {
     if (!prId) return;
 
-    if (!confirm('Solicitar correção para este PR? (O status mudará para "Ajustes")')) {
+    if (!confirm('Solicitar correção para este PR?')) {
         return;
     }
 
-    const index = currentData.prs.findIndex(p => p.id === prId);
-    if (index !== -1) {
-        currentData.prs[index].needsCorrection = true;
-        currentData.prs[index].correctionReason = 'Verificar comentários no PR'; 
-        currentData.prs[index].approved = false; 
-        currentData.prs[index].reqVersion = 'changes_requested';
+    try {
+        DOM.showLoading(true);
+        await API.requestCorrection(prId);
         
-        try {
-            DOM.showLoading(true);
-            const result = await API.savePRs(currentData);
-            currentData = result.newData;
-            
-            DOM.showToast('Correção solicitada!');
-            DOM.renderTable(currentData.prs, openEditModal);
-        } catch (error) {
-            DOM.showToast('Erro: ' + error.message, 'error');
-        } finally {
-            DOM.showLoading(false);
-        }
+        DOM.showToast('Correção solicitada com sucesso!');
+        await loadData(true);
+    } catch (error) {
+        console.error('Erro ao solicitar correção:', error);
+        DOM.showToast('Erro ao solicitar correção: ' + error.message, 'error');
+    } finally {
+        DOM.showLoading(false);
     }
 };
 
 window.markPrFixed = async (prId) => {
     if (!prId) return;
 
-    const index = currentData.prs.findIndex(p => p.id === prId);
-    if (index !== -1) {
-        currentData.prs[index].needsCorrection = false;
-        currentData.prs[index].correctionReason = null;
-        currentData.prs[index].reqVersion = 'ok';
+    if (!confirm('Marcar este PR como corrigido e reenviar para revisão?')) {
+        return;
+    }
+
+    try {
+        DOM.showLoading(true);
+        await API.markPrFixed(prId);
         
-        try {
-            DOM.showLoading(true);
-            const result = await API.savePRs(currentData);
-            currentData = result.newData;
-            
-            DOM.showToast('PR marcado como corrigido!');
-            DOM.renderTable(currentData.prs, openEditModal);
-        } catch (error) {
-            DOM.showToast('Erro: ' + error.message, 'error');
-        } finally {
-            DOM.showLoading(false);
-        }
+        DOM.showToast('PR marcado como corrigido!');
+        await loadData(true);
+    } catch (error) {
+        console.error('Erro ao marcar corrigido:', error);
+        DOM.showToast('Erro: ' + error.message, 'error');
+    } finally {
+        DOM.showLoading(false);
     }
 };
 

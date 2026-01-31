@@ -223,6 +223,25 @@ public class PullRequestService : IPullRequestService
         return MapToDto(pr);
     }
     
+    public async Task<PullRequestDto?> MarkAsFixedAsync(int id)
+    {
+        var pr = await _context.PullRequests
+            .Include(p => p.Dev)
+            .Include(p => p.Sprint)
+            .FirstOrDefaultAsync(p => p.Id == id);
+            
+        if (pr == null)
+            return null;
+        
+        pr.NeedsCorrection = false;
+        pr.CorrectionReason = null;
+        pr.ReqVersion = "ok"; // Reset version status
+        
+        await _context.SaveChangesAsync();
+        
+        return MapToDto(pr);
+    }
+    
     private static PullRequestDto MapToDto(PullRequest pr)
     {
         return new PullRequestDto
