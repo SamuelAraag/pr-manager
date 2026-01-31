@@ -520,13 +520,9 @@ prForm.addEventListener('submit', async (e) => {
 
 
 window.saveGroupVersion = async (batchId) => {
-    // We rely solely on batchId for looking up DOM elements and Data
-    const uniqueId = batchId;
-    
-    // Get Elements using batchId
-    const elVersion = document.getElementById(`v_ver_${uniqueId}`);
-    const elPipeline = document.getElementById(`v_pipe_${uniqueId}`);
-    const elRollback = document.getElementById(`v_roll_${uniqueId}`);
+    const elVersion = document.getElementById(`v_ver_${batchId}`);
+    const elPipeline = document.getElementById(`v_pipe_${batchId}`);
+    const elRollback = document.getElementById(`v_roll_${batchId}`);
 
     if (!elVersion || !elPipeline || !elRollback) {
         DOM.showToast('Erro interno: Campos de formulário não encontrados (ID mismatch).', 'error');
@@ -537,12 +533,10 @@ window.saveGroupVersion = async (batchId) => {
     const pipeline = elPipeline.value.trim();
     const rollback = elRollback.value.trim();
 
-    // Reset styles
     [elVersion, elPipeline, elRollback].forEach(el => el.style.border = '1px solid #30363d');
 
     let hasError = false;
 
-    // Required check
     if (!version) {
         elVersion.style.border = '1px solid #da3633';
         hasError = true;
@@ -561,7 +555,6 @@ window.saveGroupVersion = async (batchId) => {
         return;
     }
 
-    // Version Regex Validation
     const versionRegex = /^\d+\.\d+\.\d+\.\d+$/;
     
     if (!versionRegex.test(version)) {
@@ -576,17 +569,7 @@ window.saveGroupVersion = async (batchId) => {
         return;
     }
 
-    // Find the PRs for this batch to get project name and confirm
-    const batchPrs = currentData.prs.filter(pr => pr.versionBatchId === batchId && pr.approved);
-    
-    if (batchPrs.length === 0) {
-        DOM.showToast('Nenhum PR encontrado para este lote.', 'error');
-        return;
-    }
-
-    const projectName = batchPrs[0].project; // Derive project name from data
-
-    if (confirm(`Aplicar versão ${version} para este lote de ${batchPrs.length} PRs de "${projectName}"?`)) {
+    if (confirm(`Aplicar versão ${version} para este lote?`)) {
         try {
             DOM.showLoading(true);
             
