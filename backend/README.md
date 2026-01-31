@@ -18,7 +18,7 @@ backend/
 
 ### Pré-requisitos
 
-- .NET 9 SDK instalado
+- .NET 8 SDK instalado
 - SQLite (incluído no projeto)
 
 ### Passos
@@ -177,8 +177,8 @@ policy.WithOrigins(
 
 ## 📦 Pacotes NuGet Utilizados
 
-- **Microsoft.EntityFrameworkCore.Sqlite** (9.0.1) - ORM e banco de dados
-- **Microsoft.AspNetCore.Authentication.JwtBearer** (9.0.1) - Autenticação JWT
+- **Microsoft.EntityFrameworkCore.Sqlite** (8.0.11) - ORM e banco de dados
+- **Microsoft.AspNetCore.Authentication.JwtBearer** (8.0.11) - Autenticação JWT
 - **Swashbuckle.AspNetCore** (7.2.0) - Documentação Swagger
 - **BCrypt.Net-Next** (4.0.3) - Hash de senhas
 - **System.IdentityModel.Tokens.Jwt** (8.15.0) - Geração de tokens JWT

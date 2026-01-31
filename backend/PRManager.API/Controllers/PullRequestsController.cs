@@ -8,7 +8,7 @@ namespace PRManager.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+//TODO: back to [Authorize]
 public class PullRequestsController : ControllerBase
 {
     private readonly IPullRequestService _prService;

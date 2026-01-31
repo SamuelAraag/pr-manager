@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<PullRequest> PullRequests { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<Sprint> Sprints { get; set; } = null!;
+    public DbSet<AutomationConfig> AutomationConfigs { get; set; } = null!;
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -58,6 +59,16 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+        });
+        
+        // AutomationConfig configuration
+        modelBuilder.Entity<AutomationConfig>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Key).IsUnique();
+            entity.Property(e => e.Key).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Value).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(500);
         });
         
         // Seed initial data
@@ -124,6 +135,50 @@ public class AppDbContext : DbContext
                 StartDate = new DateTime(2026, 1, 20),
                 EndDate = new DateTime(2026, 2, 3),
                 IsActive = true
+            }
+        );
+        
+        // Seed automation configs
+        modelBuilder.Entity<AutomationConfig>().HasData(
+            new AutomationConfig
+            {
+                Id = 1,
+                Key = AutomationConfig.Keys.GitHubToken,
+                Value = "",
+                Description = "GitHub API token for repository operations",
+                IsEncrypted = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new AutomationConfig
+            {
+                Id = 2,
+                Key = AutomationConfig.Keys.GitLabUrl,
+                Value = "https://gitlab.com",
+                Description = "GitLab base URL",
+                IsEncrypted = false,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new AutomationConfig
+            {
+                Id = 3,
+                Key = AutomationConfig.Keys.GitLabToken,
+                Value = "",
+                Description = "GitLab API token for creating issues",
+                IsEncrypted = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new AutomationConfig
+            {
+                Id = 4,
+                Key = AutomationConfig.Keys.GitLabProjectId,
+                Value = "",
+                Description = "GitLab project ID for issue creation",
+                IsEncrypted = false,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             }
         );
     }

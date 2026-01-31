@@ -22,3 +22,13 @@ public interface IPullRequestService
     Task<PullRequestDto?> DeployToStagingAsync(int id, DeployToStagingDto dto);
     Task<PullRequestDto?> MarkAsDoneAsync(int id);
 }
+
+public interface IAutomationConfigService
+{
+    Task<IEnumerable<AutomationConfigDto>> GetAllAsync();
+    Task<AutomationConfigDto?> GetByKeyAsync(string key);
+    Task<AutomationConfigDto> CreateAsync(CreateAutomationConfigDto dto);
+    Task<AutomationConfigDto?> UpdateAsync(string key, UpdateAutomationConfigDto dto);
+    Task<bool> DeleteAsync(string key);
+    Task<string?> GetDecryptedValueAsync(string key);
+}

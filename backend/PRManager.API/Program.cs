@@ -91,6 +91,7 @@ builder.Services.AddCors(options =>
 // Register application services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPullRequestService, PullRequestService>();
+builder.Services.AddScoped<IAutomationConfigService, AutomationConfigService>();
 
 var app = builder.Build();
 

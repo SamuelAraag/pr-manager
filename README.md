@@ -197,7 +197,3 @@ pr-manager/
 ## 📝 Licença
 
 Este projeto é de uso interno da equipe de desenvolvimento.
-
----
-
-**Desenvolvido com ❤️ pela equipe TaxPlus**
