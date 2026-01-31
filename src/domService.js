@@ -483,7 +483,7 @@ function createApprovedCard(projectName, projectPrs, currentUser, batchId) {
     const canRequestVersion = currentUser === 'Samuel Santos' || currentUser === 'Kemilly Vitória';
     if (!hasVersionInfo && !isRequestingVersion && canRequestVersion) {
             requestVersionBtn = `
-            <button class="btn btn-primary" style="padding: 0.3rem 0.8rem; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; margin-left:15px;" onclick="window.requestVersionBatch([${projectPrs.map(p => p.id).join(',')}], '${projectName.replace(/'/g, "\\'")}')">
+           <button class="btn btn-primary" style="padding: 0.3rem 0.8rem; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; margin-left:15px;" onclick="window.requestVersionBatch([${projectPrs.map(p => p.id).join(',')}], '${projectName.replace(/'/g, "\\'")}')">
                 <i data-lucide="package-check" style="width: 14px;"></i>
                 Solicitar Versão
             </button>`;
