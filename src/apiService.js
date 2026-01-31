@@ -33,11 +33,12 @@ async function fetchPRs() {
         const response = await fetch(url, { 
             headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
             },
             cache: 'no-store'
         });
-        
+
         if (!response.ok) {
             if (response.status === 404) {
                 return { prs: [] };
@@ -46,6 +47,8 @@ async function fetchPRs() {
         }
         
         const data = await response.json();
+        
+        console.log('Dados recebidos:', data);
         
         return { prs: data };
     } catch (error) {

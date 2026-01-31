@@ -5,7 +5,6 @@ import { GitLabService } from './gitlabService.js';
 import { EffectService } from './effectService.js';
 
 let currentData = { prs: [] };
-let currentSha = null;
 const validDevs = ['Rodrigo Barbosa', 'Itallo Cerqueira', 'Marcos Paulo', 'Samuel Santos', 'Kemilly Alvez'];
 
 const prModal = document.getElementById('prModal');
@@ -168,15 +167,15 @@ async function loadData(skipLoading = false) {
     if (!skipLoading) {
         DOM.showLoading(true);
     }
+    
     const result = await API.fetchPRs();
     
-    if (result.data) {
-        currentData = result.data;
-        currentSha = result.sha;
-        DOM.renderTable(currentData.prs, openEditModal);
+    if (result) {
+        DOM.renderTable(result.prs, openEditModal);
     } else {
-        DOM.showToast('Erro ao carregar dados do GitHub', 'error');
+        DOM.showToast('Erro ao carregar dados da API', 'error');
     }
+    
     if (!skipLoading) {
         DOM.showLoading(false);
     }
@@ -253,9 +252,8 @@ window.approvePr = async (prId) => {
         
         try {
             DOM.showLoading(true);
-            const result = await API.savePRs(currentData, currentSha);
+            const result = await API.savePRs(currentData);
             currentData = result.newData;
-            currentSha = result.newSha;
             
             DOM.showToast('PR Aprovado com sucesso!');
             DOM.renderTable(currentData.prs, openEditModal);
@@ -288,9 +286,8 @@ window.requestCorrection = async (prId) => {
         
         try {
             DOM.showLoading(true);
-            const result = await API.savePRs(currentData, currentSha);
+            const result = await API.savePRs(currentData);
             currentData = result.newData;
-            currentSha = result.newSha;
             
             DOM.showToast('Correção solicitada!');
             DOM.renderTable(currentData.prs, openEditModal);
@@ -313,9 +310,8 @@ window.markPrFixed = async (prId) => {
         
         try {
             DOM.showLoading(true);
-            const result = await API.savePRs(currentData, currentSha);
+            const result = await API.savePRs(currentData);
             currentData = result.newData;
-            currentSha = result.newSha;
             
             DOM.showToast('PR marcado como corrigido!');
             DOM.renderTable(currentData.prs, openEditModal);
@@ -422,15 +418,13 @@ prForm.addEventListener('submit', async (e) => {
         }
 
         console.log('Tentando salvar PR:', pr);
-        console.log('SHA atual:', currentSha);
         
-        const result = await API.savePRs(newData, currentSha);
+        const result = await API.savePRs(newData);
         
         currentData = result.newData;
-        currentSha = result.newSha;
         
         DOM.renderTable(currentData.prs, openEditModal);
-        DOM.showToast('Sucesso! Dados sincronizados no GitHub.');
+        DOM.showToast('Sucesso! Dados salvos na API.');
         prModal.style.display = 'none';
         prForm.reset();
     } catch (error) {
@@ -526,9 +520,8 @@ window.saveGroupVersion = async (batchId) => {
         if (changed) {
             try {
                 DOM.showLoading(true);
-                const result = await API.savePRs(currentData, currentSha);
+                const result = await API.savePRs(currentData);
                 currentData = result.newData;
-                currentSha = result.newSha;
                 DOM.showToast('Versão aplicada com sucesso!');
                 DOM.renderTable(currentData.prs, openEditModal);
             } catch (error) {
@@ -553,7 +546,6 @@ window.requestVersion = async (prId) => {
     const prs = currentData.prs.filter(p => p.project === projectName && p.approved && !p.version && !p.versionBatchId);
     console.log('PRs encontrados:', prs);
 
-    debugger
     if (!prs.length) return;
 
     if (confirm(`Solicitar versão para ${prs.length} PRs de "${projectName}"?`)) {
@@ -571,9 +563,8 @@ window.requestVersion = async (prId) => {
         if (changed) {
             try {
                 DOM.showLoading(true);
-                const result = await API.savePRs(currentData, currentSha);
+                const result = await API.savePRs(currentData);
                 currentData = result.newData;
-                currentSha = result.newSha;
                 DOM.showToast('Versão solicitada com sucesso!');
                 DOM.renderTable(currentData.prs, openEditModal);
             } catch (error) {
@@ -618,9 +609,8 @@ window.confirmDeploy = async (prId) => {
         if (changed) {
             try {
                 DOM.showLoading(true);
-                const result = await API.savePRs(currentData, currentSha);
+                const result = await API.savePRs(currentData);
                 currentData = result.newData;
-                currentSha = result.newSha;
                 DOM.showToast(`Versão liberada para Teste (STG) na ${sprintName}!`);
                 DOM.renderTable(currentData.prs, openEditModal);
             } catch (error) {
@@ -693,7 +683,7 @@ window.createGitLabIssue = async (prId) => {
                 }
             });
 
-            await API.savePRs(currentData, currentSha);
+            await API.savePRs(currentData);
             DOM.showToast('Chamado criado com sucesso no GitLab!');
             DOM.renderTable(currentData.prs, openEditModal);
         } catch (error) {
@@ -720,9 +710,8 @@ window.completeSprint = async (sprintName) => {
         if (changed) {
             try {
                 DOM.showLoading(true);
-                const result = await API.savePRs(currentData, currentSha);
+                const result = await API.savePRs(currentData);
                 currentData = result.newData;
-                currentSha = result.newSha;
                 DOM.showToast(`Sprint "${sprintName}" concluída e arquivada!`);
                 DOM.renderTable(currentData.prs, openEditModal);
             } catch (error) {
