@@ -429,7 +429,7 @@ function openAddModal() {
 }
 
 document.getElementById('addPrBtn').addEventListener('click', openAddModal);
-document.getElementById('setupBtn').addEventListener('click', () => setupModal.style.display = 'flex');
+document.getElementById('setupBtn').addEventListener('click', openSetupModal);
 
 document.getElementById('changeUserBtn').addEventListener('click', showProfileSelection);
 
