@@ -21,6 +21,12 @@ function renderTable(prs, batches, sprints, onEdit) {
     const activeSprints = sprints.filter(s => s.isActive);
     const inactiveSprints = sprints.filter(s => !s.isActive);
 
+    const totalOpenBadge = document.getElementById('totalOpenPrs');
+    if (totalOpenBadge) {
+        totalOpenBadge.textContent = openPrs.length;
+        totalOpenBadge.style.display = openPrs.length > 0 ? 'inline-block' : 'none';
+    }
+
     renderOpenTable(openPrs, 'openPrTableBody', onEdit);
     renderApprovedTables(approvedPending, batches, 'dashboardApproved', onEdit);
     renderTestingTable(activeSprints, 'dashboardTesting', onEdit);
@@ -48,7 +54,7 @@ function renderOpenTable(data, containerId, onEdit) {
     const projectNames = Object.keys(grouped).sort();
     projectNames.forEach(projectName => {
         const projectPrs = grouped[projectName];
-        const headerContent = `${projectName}`;
+        const headerContent = `${projectName} (${projectPrs.length})`;
         const headerRow = document.createElement('tr');
         headerRow.className = 'group-header';
         headerRow.innerHTML = `<td colspan="6"><div style="display:flex; justify-content:space-between; align-items:center;"><div style="font-weight: 600;">${headerContent}</div></div></td>`;
