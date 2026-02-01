@@ -216,7 +216,6 @@ if (godModeInput) {
                     
                     godModeContainer.style.display = 'none';
                     godModeInput.value = '';
-                    DOM.showToast('Modo Admin Ativado!');
                 }
             } catch (error) {
                 console.error('Erro no God Mode:', error);
