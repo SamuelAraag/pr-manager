@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PRManager.Infrastructure.Data;
 
@@ -10,9 +11,11 @@ using PRManager.Infrastructure.Data;
 namespace PRManager.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260201105209_MakeSprintDatesNullable")]
+    partial class MakeSprintDatesNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.11");
@@ -47,10 +50,10 @@ namespace PRManager.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 1, 11, 2, 30, 575, DateTimeKind.Utc).AddTicks(1490),
+                            CreatedAt = new DateTime(2026, 2, 1, 10, 52, 8, 916, DateTimeKind.Utc).AddTicks(4980),
                             GithubToken = "",
                             GitlabToken = "",
-                            UpdatedAt = new DateTime(2026, 2, 1, 11, 2, 30, 575, DateTimeKind.Utc).AddTicks(1490)
+                            UpdatedAt = new DateTime(2026, 2, 1, 10, 52, 8, 916, DateTimeKind.Utc).AddTicks(4980)
                         });
                 });
 
@@ -185,6 +188,16 @@ namespace PRManager.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Sprints");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            EndDate = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsActive = true,
+                            Name = "Sprint 27",
+                            StartDate = new DateTime(2026, 1, 20, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        });
                 });
 
             modelBuilder.Entity("PRManager.Domain.Models.User", b =>
@@ -233,7 +246,7 @@ namespace PRManager.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 1, 11, 2, 30, 575, DateTimeKind.Utc).AddTicks(1300),
+                            CreatedAt = new DateTime(2026, 2, 1, 10, 52, 8, 916, DateTimeKind.Utc).AddTicks(4510),
                             Email = "rodrigo.barbosa@company.com",
                             Name = "Rodrigo Barbosa",
                             PasswordHash = "$2a$11$XZvCfQqmJQZJZQZJZQZJZu7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7",
@@ -242,7 +255,7 @@ namespace PRManager.Infrastructure.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 2, 1, 11, 2, 30, 575, DateTimeKind.Utc).AddTicks(1300),
+                            CreatedAt = new DateTime(2026, 2, 1, 10, 52, 8, 916, DateTimeKind.Utc).AddTicks(4510),
                             Email = "itallo.cerqueira@company.com",
                             Name = "Itallo Cerqueira",
                             PasswordHash = "$2a$11$XZvCfQqmJQZJZQZJZQZJZu7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7",
@@ -251,7 +264,7 @@ namespace PRManager.Infrastructure.Migrations
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 2, 1, 11, 2, 30, 575, DateTimeKind.Utc).AddTicks(1300),
+                            CreatedAt = new DateTime(2026, 2, 1, 10, 52, 8, 916, DateTimeKind.Utc).AddTicks(4540),
                             Email = "marcos.paulo@company.com",
                             Name = "Marcos Paulo",
                             PasswordHash = "$2a$11$XZvCfQqmJQZJZQZJZQZJZu7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7",
@@ -260,7 +273,7 @@ namespace PRManager.Infrastructure.Migrations
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2026, 2, 1, 11, 2, 30, 575, DateTimeKind.Utc).AddTicks(1310),
+                            CreatedAt = new DateTime(2026, 2, 1, 10, 52, 8, 916, DateTimeKind.Utc).AddTicks(4540),
                             Email = "samuel.santos@company.com",
                             Name = "Samuel Santos",
                             PasswordHash = "$2a$11$XZvCfQqmJQZJZQZJZQZJZu7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7",
@@ -269,7 +282,7 @@ namespace PRManager.Infrastructure.Migrations
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2026, 2, 1, 11, 2, 30, 575, DateTimeKind.Utc).AddTicks(1310),
+                            CreatedAt = new DateTime(2026, 2, 1, 10, 52, 8, 916, DateTimeKind.Utc).AddTicks(4550),
                             Email = "kemilly.alvez@company.com",
                             Name = "Kemilly Alvez",
                             PasswordHash = "$2a$11$XZvCfQqmJQZJZQZJZQZJZu7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7Z7",

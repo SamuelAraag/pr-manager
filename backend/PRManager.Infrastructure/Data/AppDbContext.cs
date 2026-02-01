@@ -139,18 +139,6 @@ public class AppDbContext : DbContext
             }
         );
         
-        // Seed current sprint
-        modelBuilder.Entity<Sprint>().HasData(
-            new Sprint
-            {
-                Id = 1,
-                Name = "Sprint 27",
-                StartDate = new DateTime(2026, 1, 20),
-                EndDate = new DateTime(2026, 2, 3),
-                IsActive = true
-            }
-        );
-        
         // Seed automation configs
         modelBuilder.Entity<AutomationConfig>().HasData(
             new AutomationConfig

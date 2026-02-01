@@ -304,6 +304,7 @@ async function loadData(skipLoading = false) {
         
         if (prResult && batches && sprints) {
             currentData.prs = prResult.prs;
+            currentData.sprints = sprints;
             DOM.renderTable(prResult.prs, batches, sprints, openEditModal);
         } else {
             DOM.showToast('Erro ao carregar dados da API', 'error');
@@ -369,6 +370,27 @@ document.getElementById('addPrBtn').addEventListener('click', openAddModal);
 document.getElementById('setupBtn').addEventListener('click', () => setupModal.style.display = 'flex');
 
 document.getElementById('changeUserBtn').addEventListener('click', showProfileSelection);
+
+document.getElementById('newSprintBtn').addEventListener('click', async () => {
+    const sprintName = prompt('Informe o nome da nova Sprint (ex: 28):', 'Sprint ');
+    if (sprintName && sprintName.trim() !== 'Sprint ') {
+        try {
+            DOM.showLoading(true);
+            const sprintData = {
+                name: sprintName
+            };
+
+            await API.createSprint(sprintData);
+            DOM.showToast(`Sprint "${sprintName}" criada com sucesso e definida como ativa!`);
+            await loadData(true);
+        } catch (error) {
+            console.error('Erro ao criar sprint:', error);
+            DOM.showToast('Erro ao criar sprint: ' + error.message, 'error');
+        } finally {
+            DOM.showLoading(false);
+        }
+    }
+});
 
 // Shortcuts specific function
 window.approvePr = async (prId) => {
@@ -705,6 +727,12 @@ window.fetchBatches = async () => {
 };
 
 window.confirmDeploy = async (batchId) => {
+    const hasActiveSprint = currentData.sprints && currentData.sprints.some(s => s.isActive);
+    if (!hasActiveSprint) {
+        DOM.showToast('Não há uma Sprint ativa. Crie uma Sprint antes de liberar para STG.', 'warning');
+        return;
+    }
+
     if (confirm(`Confirmar liberação deste lote para ambiente de Teste (STG)?`)) {
         try {
             DOM.showLoading(true);

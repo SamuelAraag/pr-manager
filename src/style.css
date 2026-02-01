@@ -8,6 +8,7 @@
     --text-secondary: #8b949e;
     --accent-color: #58a6ff;
     --accent-glow: rgba(88, 166, 255, 0.3);
+    --warning-color: #f0b840;
     --success-color: #238636;
     --danger-color: #da3633;
     --glass-bg: rgba(255, 255, 255, 0.03);
@@ -503,6 +504,7 @@ kbd {
 }
 
 .toast-success { background: var(--success-color); }
+.toast-warning { background: var(--warning-color); }
 .toast-error { background: var(--danger-color); }
 
 @keyframes slideIn {

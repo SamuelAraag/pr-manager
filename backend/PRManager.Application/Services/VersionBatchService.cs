@@ -119,15 +119,21 @@ public class VersionBatchService : IVersionBatchService
             .FirstOrDefaultAsync(v => v.BatchId == batchId);
 
         if (batch == null) return null;
+        
+        var activeSprint = await _context.Sprints.FirstOrDefaultAsync(s => s.IsActive)
+            ?? throw new InvalidOperationException("Não é possível liberar para STG sem uma Sprint ativa. Por favor, crie uma nova Sprint.");
 
+        batch.SprintId = activeSprint.Id;
         batch.Status = BatchStatus.Deployed;
         batch.UpdatedAt = DateTime.UtcNow;
 
         foreach (var pr in batch.PullRequests)
         {
+            pr.SprintId = activeSprint.Id;
             pr.DeployedToStg = true;
             pr.DeployedToStgAt = DateTime.UtcNow;
             pr.Status = PRStatus.DeployedToStaging;
+            pr.UpdatedAt = DateTime.UtcNow;
         }
 
         await _context.SaveChangesAsync();

@@ -63,7 +63,11 @@ async function fetchSprints() {
     try {
         const response = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
         if (!response.ok) throw new Error(`Falha ao buscar sprints: ${response.statusText}`);
-        return await response.json();
+
+        const data = await response.json();
+        console.log('Dados recebidos - Sprints:', data);
+
+        return data;
     } catch (error) {
         console.error('Erro ao carregar sprints:', error);
         throw error;

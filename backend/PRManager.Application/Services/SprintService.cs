@@ -39,7 +39,7 @@ public class SprintService : ISprintService
         var sprint = new Sprint
         {
             Name = dto.Name,
-            StartDate = dto.StartDate,
+            StartDate = dto.StartDate ?? DateTime.UtcNow,
             EndDate = dto.EndDate,
             IsActive = true
         };
@@ -60,6 +60,7 @@ public class SprintService : ISprintService
         if (sprint == null) return null;
 
         sprint.IsActive = false;
+        sprint.EndDate = DateTime.UtcNow;
 
         var batches = sprint.VersionBatches.ToList();
 
