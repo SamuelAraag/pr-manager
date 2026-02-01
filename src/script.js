@@ -188,8 +188,8 @@ async function init() {
     LocalStorage.init();
     
     // Load users from API first
-    
-    //TODO: Implementar loadUsers
+
+    //TODO: Implementar oadUsers
     // await loadUsers();
     renderProfileSelection();
     populateDevList();
