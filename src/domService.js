@@ -138,20 +138,18 @@ function renderTestingTable(activeSprints, containerId, onEdit) {
     container.innerHTML = '';
     
     let hasDeployed = false;
-    let totalTestingPrs = 0;
+    let totalTestingBatches = 0;
     activeSprints.forEach(sprint => {
         const deployedBatches = (sprint.versionBatches || []).filter(b => b.status === 'Deployed');
         if (deployedBatches.length > 0) hasDeployed = true;
-        deployedBatches.forEach(batch => {
-            totalTestingPrs += (batch.pullRequests || []).length;
-        });
+        totalTestingBatches += deployedBatches.length;
     });
 
     // Update total testing badge
     const totalTestingBadge = document.getElementById('totalTestingPrs');
     if (totalTestingBadge) {
-        totalTestingBadge.textContent = totalTestingPrs;
-        totalTestingBadge.style.display = totalTestingPrs > 0 ? 'inline-block' : 'none';
+        totalTestingBadge.textContent = totalTestingBatches;
+        totalTestingBadge.style.display = totalTestingBatches > 0 ? 'inline-block' : 'none';
     }
 
     if (!hasDeployed) {
