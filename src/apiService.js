@@ -243,6 +243,21 @@ async function fetchBatchById(batchId) {
     }
 }
 
+async function releaseBatchToStaging(batchId) {
+    const url = `${ApiConstants.BASE_URL}/VersionBatches/release-to-staging/${batchId}`;
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }
+        });
+        if (!response.ok) throw new Error(`Falha ao liberar lote: ${response.statusText}`);
+        return await response.json();
+    } catch (error) {
+        console.error('Erro ao liberar lote:', error);
+        throw error;
+    }
+}
+
 async function updateBatch(id, batchData) {
     const url = `${ApiConstants.BASE_URL}/VersionBatches/${id}`;
     try {
@@ -382,4 +397,4 @@ async function saveAutomationConfig(configData) {
     }
 }
 
-export { fetchPRs, fetchUsers, createPR, updatePR, requestCorrection, markPrFixed, approvePR, requestVersionBatch, saveVersionBatch, fetchBatches, fetchBatchById, updateBatch, savePRs, getAutomationConfig, saveAutomationConfig };
+export { fetchPRs, fetchUsers, createPR, updatePR, requestCorrection, markPrFixed, approvePR, requestVersionBatch, saveVersionBatch, fetchBatches, fetchBatchById, releaseBatchToStaging, updateBatch, savePRs, getAutomationConfig, saveAutomationConfig };

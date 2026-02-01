@@ -409,7 +409,7 @@ function createApprovedCard(projectName, projectPrs, currentUser, batchId, batch
             // Show Deploy Button if Issue Link Exists
             if (currentUser === 'Samuel Santos') {
                     deployBtn = `
-                    <button class="btn" style="background-color: #8e44ad; color: white; padding: 0.3rem 0.6rem; font-size: 0.75rem; margin-left: 10px; display: inline-flex; align-items: center; gap: 5px; border-radius: 4px;" onclick="window.confirmDeploy('${projectPrs[0].id}')">
+                    <button class="btn" style="background-color: #8e44ad; color: white; padding: 0.3rem 0.6rem; font-size: 0.75rem; margin-left: 10px; display: inline-flex; align-items: center; gap: 5px; border-radius: 4px;" onclick="window.confirmDeploy('${batchId}')">
                         <i data-lucide="rocket" style="width: 14px;"></i>
                         Liberar STG
                     </button>

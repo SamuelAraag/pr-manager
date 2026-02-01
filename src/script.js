@@ -673,48 +673,18 @@ window.fetchBatches = async () => {
     }
 };
 
-window.confirmDeploy = async (prId) => {
-    const referencePr = currentData.prs.find(p => p.id === prId);
-    if (!referencePr) {
-        DOM.showToast('PR não encontrado.', 'error');
-        return;
-    }
-    
-    const projectName = referencePr.project;
-    
-    if (confirm(`Confirmar liberação de "${projectName}" para ambiente de Teste (STG)?`)) {
-        
-        const sprintName = prompt("Informe a SPRINT desta liberação (ex: Sprint 143):", "Sprint ");
-        if (!sprintName || sprintName.trim() === "Sprint" || sprintName.trim() === "") {
-            DOM.showToast('Liberação cancelada: Sprint é obrigatória.', 'info');
-            return;
-        }
-
-        let changed = false;
-        
-        currentData.prs.forEach(pr => {
-            if (pr.project === projectName && pr.approved && pr.version && !pr.deployedToStg) {
-                pr.deployedToStg = true;
-                pr.deployedToStgAt = new Date().toISOString();
-                pr.sprint = sprintName.trim();
-                changed = true;
-            }
-        });
-
-        if (changed) {
-            try {
-                DOM.showLoading(true);
-                const result = await API.savePRs(currentData);
-                currentData = result.newData;
-                DOM.showToast(`Versão liberada para Teste (STG) na ${sprintName}!`);
-                DOM.renderTable(currentData.prs, openEditModal);
-            } catch (error) {
-                DOM.showToast('Erro ao liberar versão: ' + error.message, 'error');
-            } finally {
-                DOM.showLoading(false);
-            }
-        } else {
-            DOM.showToast('Nenhum PR pendente para liberar neste grupo.', 'info');
+window.confirmDeploy = async (batchId) => {
+    if (confirm(`Confirmar liberação deste lote para ambiente de Teste (STG)?`)) {
+        try {
+            DOM.showLoading(true);
+            await API.releaseBatchToStaging(batchId);
+            DOM.showToast('Versão liberada para Teste (STG) com sucesso!');
+            await loadData(true);
+        } catch (error) {
+            console.error('Erro ao liberar lote:', error);
+            DOM.showToast('Erro ao liberar lote: ' + error.message, 'error');
+        } finally {
+            DOM.showLoading(false);
         }
     }
 };

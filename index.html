@@ -59,9 +59,6 @@
                     style="border-color: #da3633; color: #f85149;">
                     <i data-lucide="settings"></i>
                 </button>
-                <button id="addPrBtn" class="btn btn-primary" title="Novo PR (N)">
-                    <i data-lucide="plus"></i> Novo PR
-                </button>
             </div>
         </header>
 
@@ -72,9 +69,14 @@
             </div>
 
             <!-- PRs Em Aberto -->
-            <h3
-                style="margin-bottom: 1rem; color: var(--text-primary); border-left: 4px solid var(--accent-color); padding-left: 10px;">
-                PRs em Aberto</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3
+                    style="color: var(--text-primary); border-left: 4px solid var(--accent-color); padding-left: 10px; margin: 0;">
+                    PRs em Aberto</h3>
+                <button id="addPrBtn" class="btn btn-primary" title="Novo PR (N)">
+                    <i data-lucide="plus"></i> Novo PR
+                </button>
+            </div>
             <div id="dashboard" class="data-card" style="margin-bottom: 3rem;">
                 <div class="table-container">
                     <table id="openPrTable">

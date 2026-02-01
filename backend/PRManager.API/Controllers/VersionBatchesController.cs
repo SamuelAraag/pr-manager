@@ -75,6 +75,14 @@ public class VersionBatchesController : ControllerBase
         return Ok(prs);
     }
 
+    [HttpPost("release-to-staging/{batchId}")]
+    public async Task<ActionResult<VersionBatchDto>> ReleaseToStaging(string batchId)
+    {
+        var batch = await _batchService.ReleaseToStagingAsync(batchId);
+        if (batch == null) return NotFound();
+        return Ok(batch);
+    }
+
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {

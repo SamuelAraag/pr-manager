@@ -12,5 +12,6 @@ public interface IVersionBatchService
     Task<VersionBatchDto?> UpdateByBatchIdAsync(string batchId, UpdateVersionBatchDto dto);
     Task<IEnumerable<PullRequestDto>> SaveVersionBatchAsync(BatchSaveVersionDto dto);
     Task<IEnumerable<PullRequestDto>> RequestVersionBatchAsync(BatchRequestVersionDto dto);
+    Task<VersionBatchDto?> ReleaseToStagingAsync(string batchId);
     Task<bool> DeleteAsync(int id);
 }

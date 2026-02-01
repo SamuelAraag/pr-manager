@@ -108,6 +108,28 @@ public class VersionBatchService : IVersionBatchService
         return MapToDto(batch);
     }
 
+    public async Task<VersionBatchDto?> ReleaseToStagingAsync(string batchId)
+    {
+        var batch = await _context.VersionBatches
+            .Include(v => v.PullRequests)
+            .FirstOrDefaultAsync(v => v.BatchId == batchId);
+
+        if (batch == null) return null;
+
+        batch.Status = BatchStatus.Deployed;
+        batch.UpdatedAt = DateTime.UtcNow;
+
+        foreach (var pr in batch.PullRequests)
+        {
+            pr.DeployedToStg = true;
+            pr.DeployedToStgAt = DateTime.UtcNow;
+            pr.Status = PRStatus.DeployedToStaging;
+        }
+
+        await _context.SaveChangesAsync();
+        return MapToDto(batch);
+    }
+
     public async Task<bool> DeleteAsync(int id)
     {
         var batch = await _context.VersionBatches.FindAsync(id);
