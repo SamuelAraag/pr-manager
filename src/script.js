@@ -233,7 +233,6 @@ function closeAllModals() {
     setupModal.style.display = 'none';
     if (shortcutsModal) shortcutsModal.style.display = 'none';
     
-    // Only close profile screen if a user is already selected
     if (LocalStorage.getItem('appUser')) {
         profileScreen.style.display = 'none';
     }

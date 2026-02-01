@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PRManager.Application.DTOs;
 using PRManager.Application.Interfaces;
@@ -76,6 +77,7 @@ public class VersionBatchesController : ControllerBase
     }
 
     [HttpPost("release-to-staging/{batchId}")]
+    [Authorize()]
     public async Task<ActionResult<VersionBatchDto>> ReleaseToStaging(string batchId)
     {
         var batch = await _batchService.ReleaseToStagingAsync(batchId);
@@ -84,6 +86,7 @@ public class VersionBatchesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize()]
     public async Task<ActionResult> Delete(int id)
     {
         var result = await _batchService.DeleteAsync(id);

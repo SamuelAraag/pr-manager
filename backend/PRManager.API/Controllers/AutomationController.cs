@@ -1,13 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PRManager.Application.DTOs;
 using PRManager.Application.Interfaces;
 
 namespace PRManager.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-//[Authorize(Roles = "Admin,Gesto,Qa")]
+[Authorize()]
 public class AutomationController : ControllerBase
 {
     private readonly IGitLabService _gitLabService;

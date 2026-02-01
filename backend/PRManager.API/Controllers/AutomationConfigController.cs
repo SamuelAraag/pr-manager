@@ -7,7 +7,7 @@ namespace PRManager.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-//[Authorize(Roles = "Admin,Gestor")]
+[Authorize()]
 public class AutomationConfigController : ControllerBase
 {
     private readonly IAutomationConfigService _configService;

@@ -8,7 +8,6 @@ namespace PRManager.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-//TODO: back to [Authorize]
 public class PullRequestsController : ControllerBase
 {
     private readonly IPullRequestService _prService;
@@ -58,6 +57,7 @@ public class PullRequestsController : ControllerBase
     }
     
     [HttpDelete("{id}")]
+    [Authorize()]
     public async Task<ActionResult> Delete(int id)
     {
         var userId = GetCurrentUserId();
@@ -68,7 +68,7 @@ public class PullRequestsController : ControllerBase
     }
     
     [HttpPost("{id}/approve")]
-    //[Authorize(Roles = "QA,Gestor,Admin")]
+    [Authorize()]
     public async Task<ActionResult<PullRequestDto>> Approve(int id, [FromBody] ApproveDto dto)
     {
         var pr = await _prService.ApproveAsync(id, dto.ApproverId);
@@ -78,7 +78,7 @@ public class PullRequestsController : ControllerBase
     }
     
     [HttpPost("{id}/request-correction")]
-    // [Authorize(Roles = "QA,Gestor,Admin")]
+    [Authorize()]
     public async Task<ActionResult<PullRequestDto>> RequestCorrection(int id, [FromBody] RequestCorrectionDto dto)
     {
         var pr = await _prService.RequestCorrectionAsync(id, dto);
@@ -88,7 +88,7 @@ public class PullRequestsController : ControllerBase
     }
 
     [HttpPost("{id}/deploy-staging")]
-    [Authorize(Roles = "QA,Admin")]
+    [Authorize()]
     public async Task<ActionResult<PullRequestDto>> DeployToStaging(int id, [FromBody] DeployToStagingDto dto)
     {
         var pr = await _prService.DeployToStagingAsync(id, dto);
@@ -98,7 +98,6 @@ public class PullRequestsController : ControllerBase
     }
     
     [HttpPost("{id}/mark-fixed")]
-    //[Authorize(Roles = "Dev,Admin")]
     public async Task<ActionResult<PullRequestDto>> MarkAsFixed(int id)
     {
         var pr = await _prService.MarkAsFixedAsync(id);
@@ -107,8 +106,9 @@ public class PullRequestsController : ControllerBase
         return Ok(pr);
     }
 
+//TODO: verify if this is needed or using in front
     [HttpPost("{id}/mark-done")]
-    [Authorize(Roles = "QA,Admin")]
+    [Authorize()]
     public async Task<ActionResult<PullRequestDto>> MarkAsDone(int id)
     {
         var pr = await _prService.MarkAsDoneAsync(id);
