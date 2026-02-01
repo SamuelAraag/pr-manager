@@ -104,6 +104,20 @@ const shortcutsModal = document.getElementById('shortcutsModal');
 const prForm = document.getElementById('prForm');
 const ghTokenInput = document.getElementById('ghTokenInput');
 const profileScreen = document.getElementById('profileScreen');
+const currentUserDisplay = document.getElementById('currentUserDisplay');
+const currentUserDisplayRight = document.getElementById('currentUserDisplayRight');
+
+if (currentUserDisplay) currentUserDisplay.addEventListener('click', showProfileSelection);
+if (currentUserDisplayRight) currentUserDisplayRight.addEventListener('click', showProfileSelection);
+
+// Click outside to close profile selection if user already selected
+if (profileScreen) {
+    profileScreen.addEventListener('click', (e) => {
+        if (e.target === profileScreen && LocalStorage.getItem('appUser')) {
+            profileScreen.style.display = 'none';
+        }
+    });
+}
 
 window.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
@@ -162,7 +176,12 @@ window.addEventListener('keydown', (e) => {
 function closeAllModals() {
     prModal.style.display = 'none';
     setupModal.style.display = 'none';
-    shortcutsModal.style.display = 'none';
+    if (shortcutsModal) shortcutsModal.style.display = 'none';
+    
+    // Only close profile screen if a user is already selected
+    if (LocalStorage.getItem('appUser')) {
+        profileScreen.style.display = 'none';
+    }
 }
 
 async function init() {
@@ -229,27 +248,36 @@ function updateUserDisplay(userName) {
     };
 
     const imageSrc = profileImages[userName] || 'src/assets/profiles/default-profile.png';
+    const isAdmin = userName === 'Samuel Santos';
 
-    currentUserDisplay.innerHTML = '';
-    currentUserDisplay.style.background = 'transparent';
-    currentUserDisplay.style.alignItems = 'normal';
-    currentUserDisplay.style.justifyContent = 'normal';
-    
-    currentUserDisplay.appendChild(Object.assign(document.createElement('img'), {
-        src: imageSrc,
-        style: "width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;"
-    }));
+    const updateDisplay = (display) => {
+        if (!display) return;
+        display.innerHTML = '';
+        display.style.background = 'transparent';
+        display.style.alignItems = 'normal';
+        display.style.justifyContent = 'normal';
+        
+        display.appendChild(Object.assign(document.createElement('img'), {
+            src: imageSrc,
+            style: "width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;"
+        }));
+    };
 
-    if (userName === 'Samuel Santos') {
+    updateDisplay(currentUserDisplay);
+    updateDisplay(currentUserDisplayRight);
+
+    if (isAdmin) {
         document.documentElement.style.setProperty('--admin-display', 'flex');
+        document.documentElement.style.setProperty('--dev-display', 'none');
     } else {
         document.documentElement.style.setProperty('--admin-display', 'none');
+        document.documentElement.style.setProperty('--dev-display', 'flex');
     }
 
     // Show/hide setup button - only admin can configure tokens
     const setupBtn = document.getElementById('setupBtn');
     if (setupBtn) {
-        setupBtn.style.display = userName === 'Samuel Santos' ? 'inline-flex' : 'none';
+        setupBtn.style.display = isAdmin ? 'inline-flex' : 'none';
     }
 }
 
@@ -336,7 +364,7 @@ function openAddModal() {
 
 document.getElementById('addPrBtn').addEventListener('click', openAddModal);
 document.getElementById('setupBtn').addEventListener('click', () => setupModal.style.display = 'flex');
-document.getElementById('shortcutsBtn').addEventListener('click', () => shortcutsModal.style.display = 'flex');
+
 document.getElementById('changeUserBtn').addEventListener('click', showProfileSelection);
 
 // Shortcuts specific function

@@ -41,7 +41,7 @@
         <header>
             <div class="logo-area">
                 <div style="display: flex; align-items: center; gap: 1rem;">
-                    <div id="currentUserDisplay" class="current-user-avatar" title="Mudar Usuário">--</div>
+                    <div id="currentUserDisplay" class="current-user-avatar admin-only" title="Mudar Usuário">--</div>
                     <div>
                         <h1>PR Manager</h1>
                         <p style="color: var(--text-secondary); font-size: 0.8rem;">Controle de PRs centralizados</p>
@@ -49,16 +49,16 @@
                 </div>
             </div>
             <div class="actions">
-                <button id="changeUserBtn" class="btn btn-outline" title="Trocar Usuário (U)">
+                <button id="changeUserBtn" class="btn btn-outline admin-only" title="Trocar Usuário (U)">
                     <i data-lucide="users"></i>
                 </button>
-                <button id="shortcutsBtn" class="btn btn-outline" title="Atalhos (Shift + ?)">
-                    <i data-lucide="keyboard"></i>
-                </button>
-                <button id="setupBtn" class="btn btn-outline" title="Configurar Token (S)"
+
+                <button id="setupBtn" class="btn btn-outline admin-only" title="Configurar Token (S)"
                     style="border-color: #da3633; color: #f85149;">
                     <i data-lucide="settings"></i>
                 </button>
+                <div id="currentUserDisplayRight" class="current-user-avatar dev-only" title="Mudar Usuário"
+                    style="width: 100px; height: 100px; font-size: 0.6rem;">--</div>
             </div>
         </header>
 

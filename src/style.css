@@ -221,11 +221,21 @@ h1 {
     font-size: 0.8rem;
     border: 2px solid var(--border-color);
     transition: all 0.3s ease;
+    cursor: pointer;
+    overflow: hidden;
 }
 
 .current-user-avatar:hover {
-    transform: scale(1.1);
+    transform: scale(1.05);
     border-color: var(--accent-color);
+}
+
+.admin-only {
+    display: var(--admin-display, flex) !important;
+}
+
+.dev-only {
+    display: var(--dev-display, none) !important;
 }
 
 @keyframes fadeIn {
