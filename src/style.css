@@ -207,6 +207,11 @@ h1 {
     color: white;
 }
 
+.actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
 /* Header User Avatar */
 .current-user-avatar {
     width: 100px;

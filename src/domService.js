@@ -95,7 +95,7 @@ function renderOpenTable(data, containerId, onEdit) {
                 <td><span class="status-badge" ${statusTooltip}>${statusText}</span></td>
                 <td><div style="display: flex; gap: 0.8rem;">${pr.teamsLink ? `<a href="${pr.teamsLink}" target="_blank" class="link-icon" title="Link Teams"><i data-lucide="message-circle" style="width: 16px;"></i></a>` : ''}${pr.taskLink ? `<a href="${pr.taskLink}" target="_blank" class="link-icon" title="Link Task"><i data-lucide="external-link" style="width: 16px;"></i></a>` : ''}${pr.prLink ? `<a href="${pr.prLink}" target="_blank" class="link-icon" title="Link PR"><i data-lucide="git-pull-request" style="width: 16px;"></i></a>` : ''}</div></td>
                 <td>
-                    <div style="display: flex; gap: 5px;">
+                    <div style="display: flex; gap: 5px; justify-content: flex-end;">
                         <button class="btn btn-outline edit-btn" style="padding: 0.4rem;" title="Editar"><i data-lucide="edit-3" style="width: 14px;"></i></button>
                         
                         ${getItem('appUser') === 'Samuel Santos' ? 
