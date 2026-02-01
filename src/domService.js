@@ -476,12 +476,24 @@ function createApprovedCard(projectName, projectPrs, currentUser, batchId, batch
     const tableContainer = document.createElement('div');
     tableContainer.className = 'table-container';
     const table = document.createElement('table');
-    table.innerHTML = `<thead><tr><th>Projeto</th><th>Resumo</th><th>Dev</th><th>Status</th><th>Links</th></tr></thead><tbody></tbody>`;
+    table.innerHTML = `<thead><tr><th>Projeto</th><th>Resumo</th><th>Dev</th><th>Status</th><th>Rollback</th><th>Links</th></tr></thead><tbody></tbody>`;
     const tbody = table.querySelector('tbody');
     
     projectPrs.forEach(pr => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td><span class="tag">${pr.project || '-'}</span></td><td style="font-weight: 500;">${pr.summary || '-'}</td><td>${pr.dev || '-'}</td><td><span class="status-badge" style="background: #8e44ad">Mergeado</span></td><td><div style="display: flex; gap: 0.8rem;">${pr.teamsLink ? `<a href="${pr.teamsLink}" target="_blank" class="link-icon" title="Link Teams"><i data-lucide="message-circle" style="width: 16px;"></i></a>` : ''}${pr.taskLink ? `<a href="${pr.taskLink}" target="_blank" class="link-icon" title="Link Task"><i data-lucide="external-link" style="width: 16px;"></i></a>` : ''}${pr.prLink ? `<a href="${pr.prLink}" target="_blank" class="link-icon" title="Link PR"><i data-lucide="git-pull-request" style="width: 16px;"></i></a>` : ''}</div></td>`;
+        tr.innerHTML = `
+            <td><span class="tag">${pr.project || '-'}</span></td>
+            <td style="font-weight: 500;">${pr.summary || '-'}</td>
+            <td>${pr.dev || '-'}</td>
+            <td><span class="status-badge" style="background: #8e44ad">Mergeado</span></td>
+            <td style="font-size: 0.8rem; color: var(--text-secondary);">${pr.rollback || '-'}</td>
+            <td>
+                <div style="display: flex; gap: 0.8rem;">
+                    ${pr.teamsLink ? `<a href="${pr.teamsLink}" target="_blank" class="link-icon" title="Link Teams"><i data-lucide="message-circle" style="width: 16px;"></i></a>` : ''}
+                    ${pr.taskLink ? `<a href="${pr.taskLink}" target="_blank" class="link-icon" title="Link Task"><i data-lucide="external-link" style="width: 16px;"></i></a>` : ''}
+                    ${pr.prLink ? `<a href="${pr.prLink}" target="_blank" class="link-icon" title="Link PR"><i data-lucide="git-pull-request" style="width: 16px;"></i></a>` : ''}
+                </div>
+            </td>`;
         tbody.appendChild(tr);
     });
     card.appendChild(headerDiv);
