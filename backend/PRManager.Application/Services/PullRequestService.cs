@@ -257,6 +257,7 @@ public class PullRequestService : IPullRequestService
             GitlabIssueLink = pr.GitlabIssueLink,
             DeployedToStg = pr.DeployedToStg,
             DeployedToStgAt = pr.DeployedToStgAt,
+            SprintId = pr.SprintId,
             Sprint = pr.Sprint?.Name,
             CreatedAt = pr.CreatedAt,
             UpdatedAt = pr.UpdatedAt

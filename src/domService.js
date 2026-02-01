@@ -11,25 +11,20 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-function renderTable(prs, batches, onEdit) {
+function renderTable(prs, batches, sprints, onEdit) {
     const openPrs = prs.filter(p => !p.approved);
     
-    // Split approved into:
-    // 1. Pending Deploy (Approved Table) -> approved && !deployedToStg (Includes Batches and Backlog)
-    // 2. Active Testing (Testing Table) -> approved && deployedToStg && !sprintCompleted
-    // 3. History (History Table) -> approved && deployedToStg && sprintCompleted
-
+    // Split approved for Dashboard
     const approvedTotal = prs.filter(p => p.approved);
     const approvedPending = approvedTotal.filter(p => !p.deployedToStg);
     
-    const allDeployed = approvedTotal.filter(p => p.deployedToStg);
-    const activeTesting = allDeployed.filter(p => !p.sprintCompleted);
-    const historyPrs = allDeployed.filter(p => p.sprintCompleted);
+    const activeSprints = sprints.filter(s => s.isActive);
+    const inactiveSprints = sprints.filter(s => !s.isActive);
 
     renderOpenTable(openPrs, 'openPrTableBody', onEdit);
     renderApprovedTables(approvedPending, batches, 'dashboardApproved', onEdit);
-    renderTestingTable(activeTesting, 'dashboardTesting', onEdit);
-    renderHistoryTable(historyPrs, 'dashboardHistory', onEdit);
+    renderTestingTable(activeSprints, 'dashboardTesting', onEdit);
+    renderHistoryTable(inactiveSprints, 'dashboardHistory', onEdit);
 
     if (window.lucide) {
         window.lucide.createIcons();
@@ -131,28 +126,29 @@ function renderOpenTable(data, containerId, onEdit) {
     });
 }
 
-function renderTestingTable(data, containerId, onEdit) {
+function renderTestingTable(activeSprints, containerId, onEdit) {
     const container = document.getElementById(containerId);
     if (!container) return;
     container.innerHTML = '';
     
-    if (data.length === 0) {
+    let hasDeployed = false;
+    activeSprints.forEach(sprint => {
+        const deployedBatches = (sprint.versionBatches || []).filter(b => b.status === 'Deployed');
+        if (deployedBatches.length > 0) hasDeployed = true;
+    });
+
+    if (!hasDeployed) {
         container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary); background: #161b22; border: 1px solid #30363d; border-radius: 6px;">Nenhuma versão em teste (STG).</div>';
         return;
     }
 
-    // 1. Group by Sprint
-    const bySprint = data.reduce((acc, pr) => {
-        const sprint = pr.sprint || 'Outras Versões';
-        if (!acc[sprint]) acc[sprint] = [];
-        acc[sprint].push(pr);
-        return acc;
-    }, {});
-
-    const sprints = Object.keys(bySprint).sort().reverse();
     const currentUser = getItem('appUser');
 
-    sprints.forEach(sprintName => {
+    activeSprints.forEach(sprint => {
+        const deployedBatches = (sprint.versionBatches || []).filter(b => b.status === 'Deployed');
+        
+        if (deployedBatches.length === 0) return;
+
         // Sprint Header with Complete Config
         const headerContainer = document.createElement('div');
         headerContainer.style.display = 'flex';
@@ -164,13 +160,13 @@ function renderTestingTable(data, containerId, onEdit) {
         headerContainer.style.paddingBottom = '0.5rem';
 
         const sprintTitle = document.createElement('h3');
-        sprintTitle.textContent = sprintName;
+        sprintTitle.textContent = sprint.name;
         sprintTitle.style.cssText = 'color: var(--text-primary); margin: 0; padding-left: 15px; border-left: 4px solid #8e44ad; font-size: 1.1rem; opacity: 0.9;';
         
         let completeBtn = '';
         if (currentUser === 'Samuel Santos') {
              completeBtn = `
-                <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.8rem; border-color: #30363d; color: var(--text-secondary);" onclick="window.completeSprint('${sprintName}')">
+                <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.8rem; border-color: #30363d; color: var(--text-secondary);" onclick="window.completeSprint(${sprint.id})">
                     <i data-lucide="check-circle-2" style="width: 14px; margin-right: 5px;"></i>
                     Concluir Sprint
                 </button>
@@ -187,28 +183,12 @@ function renderTestingTable(data, containerId, onEdit) {
 
         container.appendChild(headerContainer);
 
-        const projectPrsInSprint = bySprint[sprintName];
-
-        // 2. Group by Project-Version within Sprint
-        const byProjectVer = projectPrsInSprint.reduce((acc, pr) => {
-            const project = pr.project || 'Outros';
-            const key = `${project}-${pr.version}`; 
-            if (!acc[key]) acc[key] = [];
-            acc[key].push(pr);
-            return acc;
-        }, {});
-        
-        const keys = Object.keys(byProjectVer).sort();
-
-        keys.forEach(key => {
-            const prs = byProjectVer[key];
-            const info = prs[0];
-            const project = info.project;
-            
+        // Render Deployed Version Batches within Sprint
+        deployedBatches.forEach(batch => {
             let gitlabLink = '';
-            if (info.gitlabIssueLink) {
+            if (batch.gitlabIssueLink) {
                 gitlabLink = `
-                    <a href="${info.gitlabIssueLink}" target="_blank" class="btn" style="background-color: #30363d; color: var(--text-secondary); padding: 0.2rem 0.6rem; font-size: 0.75rem; margin-left: 10px; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; border: 1px solid #444; border-radius: 4px;">
+                    <a href="${batch.gitlabIssueLink}" target="_blank" class="btn" style="background-color: #30363d; color: var(--text-secondary); padding: 0.2rem 0.6rem; font-size: 0.75rem; margin-left: 10px; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; border: 1px solid #444; border-radius: 4px;">
                         <i data-lucide="gitlab" style="width: 14px;"></i>
                         Ver Chamado
                     </a>
@@ -229,8 +209,8 @@ function renderTestingTable(data, containerId, onEdit) {
             
             headerDiv.innerHTML = `
                 <div style="display:flex; align-items:center;">
-                    <span style="font-weight: 600; font-size: 1.1rem;">${project}</span>
-                    <span class="tag" style="background:#8e44ad; color:white; margin-left: 10px;">v${info.version}</span>
+                    <span style="font-weight: 600; font-size: 1.1rem;">${batch.project}</span>
+                    <span class="tag" style="background:#8e44ad; color:white; margin-left: 10px;">v${batch.version}</span>
                 </div>
                 <div style="display:flex; align-items:center;">
                     ${gitlabLink}
@@ -242,7 +222,7 @@ function renderTestingTable(data, containerId, onEdit) {
             const table = document.createElement('table');
             table.innerHTML = `<thead><tr><th>Projeto</th><th>Resumo</th><th>Dev</th><th>Links</th></tr></thead><tbody></tbody>`;
             const tbody = table.querySelector('tbody');
-            prs.forEach(pr => {
+            (batch.pullRequests || []).forEach(pr => {
                  const tr = document.createElement('tr');
                  tr.innerHTML = `<td><span class="tag">${pr.project || '-'}</span></td><td>${pr.summary || '-'}</td><td>${pr.dev || '-'}</td><td><div style="display: flex; gap: 0.8rem;">${pr.teamsLink ? `<a href="${pr.teamsLink}" target="_blank" class="link-icon" title="Link Teams"><i data-lucide="message-circle" style="width: 16px;"></i></a>` : ''}${pr.taskLink ? `<a href="${pr.taskLink}" target="_blank" class="link-icon" title="Link Task"><i data-lucide="external-link" style="width: 14px;"></i></a>` : ''}${pr.prLink ? `<a href="${pr.prLink}" target="_blank" class="link-icon" title="Link PR"><i data-lucide="git-pull-request" style="width: 14px;"></i></a>` : ''}</div></td>`;
                  tbody.appendChild(tr);
@@ -256,52 +236,29 @@ function renderTestingTable(data, containerId, onEdit) {
     });
 }
 
-function renderHistoryTable(data, containerId, onEdit) {
+function renderHistoryTable(inactiveSprints, containerId, onEdit) {
     // Renders the COMPLETED sprints (History)
     const container = document.getElementById(containerId);
     if (!container) return;
     container.innerHTML = '';
     
-    if (data.length === 0) {
-        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary); border: 1px dashed #30363d; border-radius: 6px; font-size: 0.9rem;">Histórico vazio.</div>';
+    if (inactiveSprints.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary); background: #161b22; border: 1px solid #30363d; border-radius: 6px; opacity: 0.6;">Nenhum histórico disponível.</div>';
         return;
     }
 
-    const bySprint = data.reduce((acc, pr) => {
-        const sprint = pr.sprint || 'Antigos';
-        if (!acc[sprint]) acc[sprint] = [];
-        acc[sprint].push(pr);
-        return acc;
-    }, {});
-
-    const sprints = Object.keys(bySprint).sort().reverse();
-
-    sprints.forEach(sprintName => {
+    inactiveSprints.forEach(sprint => {
         // Sprint Header (Grayer / Simpler)
         const sprintHeader = document.createElement('h4');
-        sprintHeader.textContent = sprintName;
+        sprintHeader.textContent = sprint.name;
         sprintHeader.style.cssText = 'color: var(--text-secondary); margin: 2rem 0 1rem 0; padding-left: 10px; border-left: 3px solid #555; font-size: 1rem; opacity: 0.7;';
         container.appendChild(sprintHeader);
 
-        const projectPrsInSprint = bySprint[sprintName];
-        const byProjectVer = projectPrsInSprint.reduce((acc, pr) => {
-            const project = pr.project || 'Outros';
-            const key = `${project}-${pr.version}`; 
-            if (!acc[key]) acc[key] = [];
-            acc[key].push(pr);
-            return acc;
-        }, {});
-        
-        const keys = Object.keys(byProjectVer).sort();
-
-        keys.forEach(key => {
-            const prs = byProjectVer[key];
-            const info = prs[0];
-            const project = info.project;
+        (sprint.versionBatches || []).forEach(batch => {
             let gitlabLink = '';
-            if (info.gitlabIssueLink) {
+            if (batch.gitlabIssueLink) {
                  gitlabLink = `
-                    <a href="${info.gitlabIssueLink}" target="_blank" style="color: var(--text-secondary); font-size: 0.75rem; text-decoration: none; opacity: 0.8;">
+                    <a href="${batch.gitlabIssueLink}" target="_blank" style="color: var(--text-secondary); font-size: 0.75rem; text-decoration: none; opacity: 0.8;">
                         <i data-lucide="gitlab" style="width: 12px;"></i> Issue
                     </a>
                 `;
@@ -324,8 +281,8 @@ function renderHistoryTable(data, containerId, onEdit) {
             
             headerDiv.innerHTML = `
                 <div style="display:flex; align-items:center; gap: 10px;">
-                    <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-secondary);">${project}</span>
-                    <span class="tag" style="background:#555; color:#ccc; font-size:0.7rem;">v${info.version}</span>
+                    <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-secondary);">${batch.project}</span>
+                    <span class="tag" style="background:#555; color:#ccc; font-size:0.7rem;">v${batch.version}</span>
                 </div>
                 <div>${gitlabLink}</div>
             `;
@@ -336,7 +293,7 @@ function renderHistoryTable(data, containerId, onEdit) {
             table.style.fontSize = '0.85rem'; // Smaller text for history
             table.innerHTML = `<thead><tr style="background:transparent;"><th style="padding:0.5rem;">Projeto</th><th style="padding:0.5rem;">Resumo</th><th style="padding:0.5rem;">Dev</th></tr></thead><tbody></tbody>`;
             const tbody = table.querySelector('tbody');
-            prs.forEach(pr => {
+            (batch.pullRequests || []).forEach(pr => {
                  const tr = document.createElement('tr');
                  tr.innerHTML = `<td style="padding:0.5rem; color:var(--text-secondary);">${pr.project || '-'}</td><td style="padding:0.5rem; color:var(--text-secondary);">${pr.summary || '-'}</td><td style="padding:0.5rem; color:var(--text-secondary);">${pr.dev || '-'}</td>`;
                  tbody.appendChild(tr);

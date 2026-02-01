@@ -12,6 +12,7 @@ public class VersionBatchDto
     public string Status { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    public int? SprintId { get; set; }
     public List<PullRequestDto> PullRequests { get; set; } = new();
 }
 

@@ -10,4 +10,5 @@ public class Sprint
     
     // Navigation properties
     public ICollection<PullRequest> PullRequests { get; set; } = new List<PullRequest>();
+    public ICollection<VersionBatch> VersionBatches { get; set; } = new List<VersionBatch>();
 }

@@ -88,6 +88,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPullRequestService, PullRequestService>();
 builder.Services.AddScoped<IAutomationConfigService, AutomationConfigService>();
 builder.Services.AddScoped<IVersionBatchService, VersionBatchService>();
+builder.Services.AddScoped<ISprintService, SprintService>();
 builder.Services.AddHttpClient<IGitLabService, GitLabService>();
 
 var app = builder.Build();

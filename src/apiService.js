@@ -58,6 +58,18 @@ async function fetchPRs() {
     }
 }
 
+async function fetchSprints() {
+    const url = `${ApiConstants.BASE_URL}/Sprints`;
+    try {
+        const response = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+        if (!response.ok) throw new Error(`Falha ao buscar sprints: ${response.statusText}`);
+        return await response.json();
+    } catch (error) {
+        console.error('Erro ao carregar sprints:', error);
+        throw error;
+    }
+}
+
 async function fetchUsers() {
     const url = `${ApiConstants.BASE_URL}/Users`;
     
@@ -273,6 +285,40 @@ async function updateBatch(id, batchData) {
     }
 }
 
+async function createSprint(sprintData) {
+    const url = `${ApiConstants.BASE_URL}/Sprints`;
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+            body: JSON.stringify(sprintData)
+        });
+        if (!response.ok) throw new Error('Falha ao criar sprint');
+        return await response.json();
+    } catch (error) {
+        console.error('Erro ao criar sprint:', error);
+        throw error;
+    }
+}
+
+async function completeSprint(sprintId) {
+    const url = `${ApiConstants.BASE_URL}/Sprints/${sprintId}/complete`;
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Falha ao concluir sprint');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Erro ao concluir sprint:', error);
+        throw error;
+    }
+}
+
 async function approvePR(prId, approverId) {
     const url = `${ApiConstants.BASE_URL}/PullRequests/${prId}/approve`;
     
@@ -397,4 +443,4 @@ async function saveAutomationConfig(configData) {
     }
 }
 
-export { fetchPRs, fetchUsers, createPR, updatePR, requestCorrection, markPrFixed, approvePR, requestVersionBatch, saveVersionBatch, fetchBatches, fetchBatchById, releaseBatchToStaging, updateBatch, savePRs, getAutomationConfig, saveAutomationConfig };
+export { fetchPRs, fetchSprints, fetchUsers, createPR, updatePR, requestCorrection, markPrFixed, approvePR, requestVersionBatch, saveVersionBatch, fetchBatches, fetchBatchById, releaseBatchToStaging, completeSprint, createSprint, updateBatch, savePRs, getAutomationConfig, saveAutomationConfig };

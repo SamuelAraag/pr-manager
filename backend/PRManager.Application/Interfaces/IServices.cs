@@ -35,3 +35,11 @@ public interface IGitLabService
 {
     Task<string> CreateIssueAsync(string batchId);
 }
+
+public interface ISprintService
+{
+    Task<IEnumerable<SprintDto>> GetAllAsync();
+    Task<SprintDto> CreateAsync(CreateSprintDto dto);
+    Task<SprintDto?> CompleteAsync(int id);
+    Task<SprintDto?> AddBatchAsync(int id, string batchId);
+}

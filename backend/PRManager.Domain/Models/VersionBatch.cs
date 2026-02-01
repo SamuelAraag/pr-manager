@@ -20,4 +20,7 @@ public class VersionBatch
 
     // Navigation Property
     public ICollection<PullRequest> PullRequests { get; set; } = new List<PullRequest>();
+    
+    public int? SprintId { get; set; }
+    public Sprint? Sprint { get; set; }
 }

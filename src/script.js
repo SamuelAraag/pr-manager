@@ -188,7 +188,9 @@ async function init() {
     LocalStorage.init();
     
     // Load users from API first
-    await loadUsers();
+    
+    //TODO: Implementar loadUsers
+    // await loadUsers();
     renderProfileSelection();
     populateDevList();
     
@@ -294,14 +296,15 @@ async function loadData(skipLoading = false) {
     }
     
     try {
-        const [prResult, batches] = await Promise.all([
+        const [prResult, batches, sprints] = await Promise.all([
             API.fetchPRs(),
-            API.fetchBatches()
+            API.fetchBatches(),
+            API.fetchSprints()
         ]);
         
-        if (prResult && batches) {
+        if (prResult && batches && sprints) {
             currentData.prs = prResult.prs;
-            DOM.renderTable(prResult.prs, batches, openEditModal);
+            DOM.renderTable(prResult.prs, batches, sprints, openEditModal);
         } else {
             DOM.showToast('Erro ao carregar dados da API', 'error');
         }
@@ -750,32 +753,18 @@ window.createGitLabIssue = async (batchId) => {
     }
 };
 
-window.completeSprint = async (sprintName) => {
-    if (confirm(`Deseja concluir a Sprint "${sprintName}"? \nIsso moverá os itens para o Histórico de Sprints.`)) {
-        let changed = false;
-        
-        currentData.prs.forEach(pr => {
-             if (pr.sprint === sprintName && pr.deployedToStg && !pr.sprintCompleted) {
-                 pr.sprintCompleted = true;
-                 pr.completedAt = new Date().toISOString();
-                 changed = true;
-             }
-        });
-
-        if (changed) {
-            try {
-                DOM.showLoading(true);
-                const result = await API.savePRs(currentData);
-                currentData = result.newData;
-                DOM.showToast(`Sprint "${sprintName}" concluída e arquivada!`);
-                DOM.renderTable(currentData.prs, openEditModal);
-            } catch (error) {
-                 DOM.showToast('Erro ao concluir sprint: ' + error.message, 'error');
-            } finally {
-                DOM.showLoading(false);
-            }
-        } else {
-             DOM.showToast('Nenhum item pendente nesta Sprint.', 'info');
+window.completeSprint = async (sprintId) => {
+    if (confirm(`Deseja concluir esta Sprint? \nIsso moverá as versões e PRs vinculados para o Histórico.`)) {
+        try {
+            DOM.showLoading(true);
+            await API.completeSprint(sprintId);
+            DOM.showToast(`Sprint concluída e arquivada!`);
+            await loadData(true);
+        } catch (error) {
+            console.error('Erro ao concluir sprint:', error);
+            DOM.showToast('Erro ao concluir sprint: ' + error.message, 'error');
+        } finally {
+            DOM.showLoading(false);
         }
     }
 };

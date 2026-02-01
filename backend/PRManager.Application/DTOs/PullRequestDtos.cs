@@ -28,6 +28,9 @@ public class PullRequestDto
     public string? GitlabIssueLink { get; set; }
     public bool DeployedToStg { get; set; }
     public DateTime? DeployedToStgAt { get; set; }
+    public bool SprintCompleted { get; set; }
+    public DateTime? CompletedAt { get; set; }
+    public int? SprintId { get; set; }
     public string? Sprint { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

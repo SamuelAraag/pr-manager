@@ -51,11 +51,15 @@ public class VersionBatchService : IVersionBatchService
     {
         var batchId = $"batch_{DateTime.Now.Ticks}_{Guid.NewGuid().ToString().Substring(0, 8)}";
         
+        // Find active sprint to link
+        var activeSprint = await _context.Sprints.FirstOrDefaultAsync(s => s.IsActive);
+
         var batch = new VersionBatch
         {
             BatchId = batchId,
             Project = dto.Project,
-            Status = BatchStatus.Pending
+            Status = BatchStatus.Pending,
+            SprintId = activeSprint?.Id
         };
 
         _context.VersionBatches.Add(batch);
@@ -195,11 +199,13 @@ public class VersionBatchService : IVersionBatchService
         var project = prs.First().Project;
 
         // Create VersionBatch record
+        var activeSprint = await _context.Sprints.FirstOrDefaultAsync(s => s.IsActive);
         var versionBatch = new VersionBatch
         {
             BatchId = batchId,
             Project = project,
-            Status = BatchStatus.Pending
+            Status = BatchStatus.Pending,
+            SprintId = activeSprint?.Id
         };
         _context.VersionBatches.Add(versionBatch);
 
@@ -259,6 +265,7 @@ public class VersionBatchService : IVersionBatchService
             Status = batch.Status.ToString(),
             CreatedAt = batch.CreatedAt,
             UpdatedAt = batch.UpdatedAt,
+            SprintId = batch.SprintId,
             PullRequests = batch.PullRequests.Select(MapToPullRequestDto).ToList()
         };
     }
