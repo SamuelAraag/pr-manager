@@ -138,10 +138,21 @@ function renderTestingTable(activeSprints, containerId, onEdit) {
     container.innerHTML = '';
     
     let hasDeployed = false;
+    let totalTestingPrs = 0;
     activeSprints.forEach(sprint => {
         const deployedBatches = (sprint.versionBatches || []).filter(b => b.status === 'Deployed');
         if (deployedBatches.length > 0) hasDeployed = true;
+        deployedBatches.forEach(batch => {
+            totalTestingPrs += (batch.pullRequests || []).length;
+        });
     });
+
+    // Update total testing badge
+    const totalTestingBadge = document.getElementById('totalTestingPrs');
+    if (totalTestingBadge) {
+        totalTestingBadge.textContent = totalTestingPrs;
+        totalTestingBadge.style.display = totalTestingPrs > 0 ? 'inline-block' : 'none';
+    }
 
     if (!hasDeployed) {
         container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary); background: #161b22; border: 1px solid #30363d; border-radius: 6px;">Nenhuma versão em teste (STG).</div>';
@@ -215,7 +226,7 @@ function renderTestingTable(activeSprints, containerId, onEdit) {
             
             headerDiv.innerHTML = `
                 <div style="display:flex; align-items:center;">
-                    <span style="font-weight: 600; font-size: 1.1rem;">${batch.project}</span>
+                    <span style="font-weight: 600; font-size: 1.1rem;">${batch.project} (${(batch.pullRequests || []).length})</span>
                     <span class="tag" style="background:#8e44ad; color:white; margin-left: 10px;">v${batch.version}</span>
                 </div>
                 <div style="display:flex; align-items:center;">
@@ -323,6 +334,13 @@ function renderApprovedTables(approvedPrs, batches, containerId, onEdit) {
     const prIdsInBatches = new Set(batches.flatMap(b => b.pullRequests.map(pr => pr.id)));
     const backlogPrs = approvedPrs.filter(pr => !prIdsInBatches.has(pr.id));
     
+    // Update total approved badge
+    const totalApprovedBadge = document.getElementById('totalApprovedPrs');
+    if (totalApprovedBadge) {
+        totalApprovedBadge.textContent = approvedPrs.length;
+        totalApprovedBadge.style.display = approvedPrs.length > 0 ? 'inline-block' : 'none';
+    }
+    
     const backlogByProject = backlogPrs.reduce((acc, pr) => {
         const p = pr.project || 'Outros';
         if (!acc[p]) acc[p] = [];
@@ -348,7 +366,7 @@ function renderApprovedTables(approvedPrs, batches, containerId, onEdit) {
 function createApprovedCard(projectName, projectPrs, currentUser, batchId, batchLink = null) {
     const isRequestingVersion = projectPrs.some(p => p.versionRequested);
     let headerStyle = '';
-    let leftContent = `${projectName}`;
+    let leftContent = `${projectName} (${projectPrs.length})`;
     let rightContent = '';
     let versionInputs = '';
     const hasVersionInfo = projectPrs.some(p => p.version);
