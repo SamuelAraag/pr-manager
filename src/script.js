@@ -3,6 +3,7 @@ import * as API from './apiService.js';
 import * as DOM from './domService.js';
 import { GitLabService } from './automationService.js';
 import { EffectService } from './effectService.js';
+import { VersionConstants } from './constants/versionConstants.js';
 
 let currentData = { prs: [] };
 let availableUsers = [];
@@ -240,6 +241,12 @@ function closeAllModals() {
 
 async function init() {
     LocalStorage.init();
+    
+    // Set application version
+    const versionEl = document.getElementById('appVersion');
+    if (versionEl) {
+        versionEl.textContent = VersionConstants.VERSION;
+    }
     
     // Load users from API first
 
