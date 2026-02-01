@@ -179,7 +179,7 @@ function renderTestingTable(activeSprints, containerId, onEdit) {
         sprintTitle.style.cssText = 'color: var(--text-primary); margin: 0; padding-left: 15px; border-left: 4px solid #8e44ad; font-size: 1.1rem; opacity: 0.9;';
         
         let completeBtn = '';
-        if (currentUser === 'Samuel Santos') {
+        if (currentUser === 'Samuel Santos' || currentUser === 'Kemilly Alvez') {
              completeBtn = `
                 <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.8rem; border-color: #30363d; color: var(--text-secondary);" onclick="window.completeSprint(${sprint.id})">
                     <i data-lucide="check-circle-2" style="width: 14px; margin-right: 5px;"></i>
