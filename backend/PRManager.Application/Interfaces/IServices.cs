@@ -30,3 +30,8 @@ public interface IAutomationConfigService
     Task<AutomationConfigDto> GetConfigAsync();
     Task<AutomationConfigDto> UpdateConfigAsync(UpdateAutomationConfigDto dto);
 }
+
+public interface IGitLabService
+{
+    Task<string> CreateIssueAsync(string batchId);
+}

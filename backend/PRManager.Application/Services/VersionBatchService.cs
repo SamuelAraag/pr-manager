@@ -208,7 +208,6 @@ public class VersionBatchService : IVersionBatchService
 
         batch.UpdatedAt = DateTime.UtcNow;
 
-        // Propagate to PRs if necessary
         foreach (var pr in batch.PullRequests)
         {
             if (dto.Version != null) pr.Version = dto.Version;

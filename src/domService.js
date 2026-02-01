@@ -11,11 +11,11 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-function renderTable(prs, onEdit) {
+function renderTable(prs, batches, onEdit) {
     const openPrs = prs.filter(p => !p.approved);
     
     // Split approved into:
-    // 1. Pending Deploy (Approved Table) -> approved && !deployedToStg
+    // 1. Pending Deploy (Approved Table) -> approved && !deployedToStg (Includes Batches and Backlog)
     // 2. Active Testing (Testing Table) -> approved && deployedToStg && !sprintCompleted
     // 3. History (History Table) -> approved && deployedToStg && sprintCompleted
 
@@ -27,7 +27,7 @@ function renderTable(prs, onEdit) {
     const historyPrs = allDeployed.filter(p => p.sprintCompleted);
 
     renderOpenTable(openPrs, 'openPrTableBody', onEdit);
-    renderApprovedTables(approvedPending, 'dashboardApproved', onEdit);
+    renderApprovedTables(approvedPending, batches, 'dashboardApproved', onEdit);
     renderTestingTable(activeTesting, 'dashboardTesting', onEdit);
     renderHistoryTable(historyPrs, 'dashboardHistory', onEdit);
 
@@ -37,7 +37,6 @@ function renderTable(prs, onEdit) {
 }
 
 function renderOpenTable(data, containerId, onEdit) {
-    // ... existing implementation ...
     const body = document.getElementById(containerId);
     if (!body) return;
     body.innerHTML = '';
@@ -45,7 +44,7 @@ function renderOpenTable(data, containerId, onEdit) {
         body.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-secondary);">Nenhum PR pendente.</td></tr>';
         return;
     }
-    const grouped = data.reduce((acc, pr) => { /* ... */ 
+    const grouped = data.reduce((acc, pr) => {
         const project = pr.project || 'Outros';
         if (!acc[project]) acc[project] = [];
         acc[project].push(pr);
@@ -131,7 +130,6 @@ function renderOpenTable(data, containerId, onEdit) {
         });
     });
 }
-// ... renderApprovedTables (unchanged) ...
 
 function renderTestingTable(data, containerId, onEdit) {
     const container = document.getElementById(containerId);
@@ -352,79 +350,57 @@ function renderHistoryTable(data, containerId, onEdit) {
     });
 }
 
-function renderApprovedTables(data, containerId, onEdit) {
+function renderApprovedTables(approvedPrs, batches, containerId, onEdit) {
     const container = document.getElementById(containerId);
     if (!container) return;
     container.innerHTML = '';
-    if (data.length === 0) {
-        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary); background: #161b22; border: 1px solid #30363d; border-radius: 6px;">Nenhum PR aguardando liberação.</div>';
-        return;
-    }
-    const grouped = data.reduce((acc, pr) => {
-        const project = pr.project || 'Outros';
-        if (!acc[project]) acc[project] = [];
-        acc[project].push(pr);
+
+    const pendingBatches = batches.filter(b => b.status === 'Pending' || b.status === 'Released');
+    
+    const prIdsInBatches = new Set(batches.flatMap(b => b.pullRequests.map(pr => pr.id)));
+    const backlogPrs = approvedPrs.filter(pr => !prIdsInBatches.has(pr.id));
+    
+    const backlogByProject = backlogPrs.reduce((acc, pr) => {
+        const p = pr.project || 'Outros';
+        if (!acc[p]) acc[p] = [];
+        acc[p].push(pr);
         return acc;
     }, {});
     
-    const projectNames = Object.keys(grouped).sort();
     const currentUser = getItem('appUser');
-
-    projectNames.forEach(projectName => {
-        const allPrs = grouped[projectName];
-        
-        // Group by Version OR BatchId (for pending) OR 'backlog'
-        const batches = allPrs.reduce((acc, pr) => {
-            let key = 'backlog';
-            if (pr.version) {
-                 key = `v-${pr.version}`;
-            } else if (pr.versionBatchId) {
-                 key = pr.versionBatchId;
-            }
-            
-            if (!acc[key]) acc[key] = [];
-            acc[key].push(pr);
-            return acc;
-        }, {});
-
-        // Sort keys to show Versions first, then Pending Batches, then Backlog
-        const batchKeys = Object.keys(batches).sort((a, b) => {
-             if (a.startsWith('v-') && !b.startsWith('v-')) return -1;
-             if (!a.startsWith('v-') && b.startsWith('v-')) return 1;
-             if (a === 'backlog') return 1;
-             if (b === 'backlog') return -1;
-             return a.localeCompare(b);
-        });
-
-        batchKeys.forEach(key => {
-            const batchPrs = batches[key];
-            const batchId = (key !== 'backlog' && !key.startsWith('v-')) ? key : null;
-            container.appendChild(createApprovedCard(projectName, batchPrs, currentUser, batchId));
-        });
+    pendingBatches.forEach(batch => {
+        container.appendChild(createApprovedCard(batch.project, batch.pullRequests, currentUser, batch.batchId, batch.gitlabIssueLink));
     });
+
+    Object.keys(backlogByProject).sort().forEach(projectName => {
+        const projectPrs = backlogByProject[projectName];
+        container.appendChild(createApprovedCard(projectName, projectPrs, currentUser, null));
+    });
+
+    if (pendingBatches.length === 0 && backlogPrs.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary); background: #161b22; border: 1px solid #30363d; border-radius: 6px;">Nenhum PR aguardando liberação.</div>';
+    }
 }
 
-function createApprovedCard(projectName, projectPrs, currentUser, batchId) {
+function createApprovedCard(projectName, projectPrs, currentUser, batchId, batchLink = null) {
     const isRequestingVersion = projectPrs.some(p => p.versionRequested);
     let headerStyle = '';
     let leftContent = `${projectName}`;
     let rightContent = '';
     let versionInputs = '';
     const hasVersionInfo = projectPrs.some(p => p.version);
-    
-    // Unique key for input IDs (BatchId or fall back to escaped name if legacy/no-batch)
-    // NOTE: If multiple "v-" cards existed for same project (different versions), we'd need unique ID too.
-    // For "Pending" (isRequestingVersion), we definitely use batchId.
+
     const uniqueKey = batchId || projectName.replace(/\s/g, '') + (hasVersionInfo ? projectPrs[0].version : ''); 
 
     let deployBtn = '';
+    const info = projectPrs.find(p => p.version) || projectPrs[0];
+    const gitlabIssueLink = batchLink || info.gitlabIssueLink;
 
     if (hasVersionInfo) {
-        const info = projectPrs.find(p => p.version);
         let gitlabLink = '';
-        if (info.gitlabIssueLink) {
+        if (gitlabIssueLink) {
                 gitlabLink = `
-                <a href="${info.gitlabIssueLink}" target="_blank" class="btn" style="background-color: #FC6D26; color: white; padding: 0.2rem 0.6rem; font-size: 0.75rem; margin-left: 10px; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; border-radius: 4px;">
+                <a href="${gitlabIssueLink}" target="_blank" class="btn" style="background-color: #FC6D26; color: white; padding: 0.2rem 0.6rem; font-size: 0.75rem; margin-left: 10px; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; border-radius: 4px;">
                     <i data-lucide="gitlab" style="width: 14px;"></i>
                     Ver Chamado
                 </a>
@@ -448,6 +424,7 @@ function createApprovedCard(projectName, projectPrs, currentUser, batchId) {
             </div>
         `;
     }
+
     if (isRequestingVersion) {
         const devCounts = projectPrs.reduce((acc, pr) => { acc[pr.dev] = (acc[pr.dev] || 0) + 1; return acc; }, {});
         const majorityDev = Object.keys(devCounts).reduce((a, b) => devCounts[a] > devCounts[b] ? a : b);
@@ -464,15 +441,12 @@ function createApprovedCard(projectName, projectPrs, currentUser, batchId) {
         } else {
             leftContent += ` <span style="font-size:0.75rem; margin-left:10px; color:#ff7b72;">(Aguardando: ${majorityDev})</span>`;
         }
-    } else if (hasVersionInfo && currentUser === 'Samuel Santos') {
-            const info = projectPrs.find(p => p.version);
-            if (!info.gitlabIssueLink) {
+    } else if (hasVersionInfo && currentUser === 'Samuel Santos' && !gitlabIssueLink) {
             leftContent += `
-                <button class="btn" style="background-color: #6C5CE7; color: white; padding: 0.3rem 0.8rem; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; margin-left: 15px;" onclick="window.createGitLabIssue('${projectPrs[0].id}')">
+                <button class="btn" style="background-color: #6C5CE7; color: white; padding: 0.3rem 0.8rem; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; margin-left: 15px;" onclick="window.createGitLabIssue('${batchId}')">
                     <i data-lucide="gitlab" style="width: 14px;"></i>
                     Criar Chamado
                 </button>`;
-            }
     }
 
     const card = document.createElement('div');
@@ -523,7 +497,6 @@ function createApprovedCard(projectName, projectPrs, currentUser, batchId) {
     
     return card;
 }
-
 
 function showLoading(show) {
     const loading = document.getElementById('loading');

@@ -1,7 +1,7 @@
 import * as LocalStorage from './localStorageService.js';
 import * as API from './apiService.js';
 import * as DOM from './domService.js';
-import * as GitLabService from './gitlabService.js';
+import { GitLabService } from './automationService.js';
 import { EffectService } from './effectService.js';
 
 let currentData = { prs: [] };
@@ -265,16 +265,25 @@ async function loadData(skipLoading = false) {
         DOM.showLoading(true);
     }
     
-    const result = await API.fetchPRs();
-    
-    if (result) {
-        DOM.renderTable(result.prs, openEditModal);
-    } else {
+    try {
+        const [prResult, batches] = await Promise.all([
+            API.fetchPRs(),
+            API.fetchBatches()
+        ]);
+        
+        if (prResult && batches) {
+            currentData.prs = prResult.prs;
+            DOM.renderTable(prResult.prs, batches, openEditModal);
+        } else {
+            DOM.showToast('Erro ao carregar dados da API', 'error');
+        }
+    } catch (error) {
+        console.error('Erro ao carregar dados:', error);
         DOM.showToast('Erro ao carregar dados da API', 'error');
-    }
-    
-    if (!skipLoading) {
-        DOM.showLoading(false);
+    } finally {
+        if (!skipLoading) {
+            DOM.showLoading(false);
+        }
     }
 }
 
@@ -647,6 +656,23 @@ window.requestVersionBatch = async (prIds, projectName) => {
     }
 };
 
+window.fetchBatches = async () => {
+    try {
+        DOM.showLoading(true);
+        
+        const batches = await API.fetchBatches();
+        
+        DOM.showToast('Batches carregados com sucesso!');
+        await loadData(true);
+        return batches;
+    } catch (error) {
+        console.error('Erro ao carregar batches:', error);
+        DOM.showToast('Erro ao carregar batches: ' + error.message, 'error');
+    } finally {
+        DOM.showLoading(false);
+    }
+};
+
 window.confirmDeploy = async (prId) => {
     const referencePr = currentData.prs.find(p => p.id === prId);
     if (!referencePr) {
@@ -710,51 +736,13 @@ function showErrorModal(friendlyMsg, error) {
     });
 }
 
-window.createGitLabIssue = async (prId) => {
-    const token = LocalStorage.getItem('gitlabToken');
-    if (!token) {
-        DOM.showToast('Configure o token do GitLab para continuar.', 'error');
-        openSetupModal();
-        document.getElementById('glTokenInput').focus();
-        return;
-    }
-
-    const referencePr = currentData.prs.find(p => p.id === prId);
-    if (!referencePr) {
-        DOM.showToast('PR não encontrado.', 'error');
-        return;
-    }
-
-    if (!referencePr.version) {
-        DOM.showToast('Nenhuma versão definida para este grupo.', 'error');
-        return;
-    }
-
-    const data = {
-        modulo: referencePr.project,
-        versao: referencePr.version,
-        pipeline_url: referencePr.pipelineLink || 'N/A',
-        rollback: referencePr.rollback
-    };
-
-    if (confirm(`Criar issue de deploy no GitLab para "${referencePr.project} - ${referencePr.version}"?`)) {
+window.createGitLabIssue = async (batchId) => {
+    if (confirm(`Criar issue de deploy no GitLab para esse lote de versão?`)) {
         try {
             DOM.showLoading(true);
-            let result = await GitLabService.createIssue(token, data);
-            
-            currentData.prs.forEach(pr => {
-                let isSameProject = pr.project === referencePr.project;
-                let isApproved = pr.approved;
-                let isSameVersionBatch = pr.versionBatchId === referencePr.versionBatchId;
-                
-                if (isSameProject && isApproved && isSameVersionBatch) {
-                    pr.gitlabIssueLink = result.web_url;
-                }
-            });
-
-            await API.savePRs(currentData);
+            await GitLabService.createIssue(batchId);
             DOM.showToast('Chamado criado com sucesso no GitLab!');
-            DOM.renderTable(currentData.prs, openEditModal);
+            await loadData(true);
         } catch (error) {
             console.error(error);
             showErrorModal('Ocorreu um erro ao tentar criar o chamado no GitLab. Verifique o token e a conexão.', error);
