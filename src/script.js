@@ -106,6 +106,8 @@ const ghTokenInput = document.getElementById('ghTokenInput');
 const profileScreen = document.getElementById('profileScreen');
 const currentUserDisplay = document.getElementById('currentUserDisplay');
 const currentUserDisplayRight = document.getElementById('currentUserDisplayRight');
+const godModeContainer = document.getElementById('godModeContainer');
+const godModeInput = document.getElementById('godModeInput');
 
 if (currentUserDisplay) currentUserDisplay.addEventListener('click', showProfileSelection);
 if (currentUserDisplayRight) currentUserDisplayRight.addEventListener('click', showProfileSelection);
@@ -149,29 +151,89 @@ window.addEventListener('keydown', (e) => {
         closeAllModals();
     } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && key === 'k') {
         e.preventDefault();
+        
         const currentUser = LocalStorage.getItem('appUser');
+        const previousUser = LocalStorage.getItem('previousUser');
         const adminUser = 'Samuel Santos';
+        const existingToken = LocalStorage.getItem('token');
 
         if (currentUser === adminUser) {
-            const previousUser = LocalStorage.getItem('previousUser');
+            // If already in Admin, toggle back to previous user
             if (previousUser && previousUser !== adminUser) {
                 LocalStorage.setItem('appUser', previousUser);
                 updateUserDisplay(previousUser);
-                loadData();
-            } else {
-                DOM.showToast('Nenhum usuário anterior encontrado.', 'error');
+                loadData(true);
+                return;
             }
-        } else {
-            LocalStorage.setItem('previousUser', currentUser);
-            EffectService.triggerGodMode();
-            profileScreen.style.display = 'none';
-            
+        }
+
+        // If not in Admin, try to switch to Admin
+        LocalStorage.setItem('previousUser', currentUser);
+
+        if (existingToken) {
             LocalStorage.setItem('appUser', adminUser);
+            EffectService.triggerGodMode();
             updateUserDisplay(adminUser);
             loadData(true);
+            return;
+        }
+
+        if (godModeContainer.style.display === 'none') {
+            godModeContainer.style.display = 'block';
+            godModeInput.value = '';
+            godModeInput.focus();
+        } else {
+            godModeContainer.style.display = 'none';
+        }
+    } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && key === 'l') {
+        e.preventDefault();
+        
+        const token = LocalStorage.getItem('token');
+        if (token) {
+            EffectService.triggerScanLine();
+            LocalStorage.removeItem('token');
+            LocalStorage.removeItem('previousUser');
+            
+            if (LocalStorage.getItem('appUser') === 'Samuel Santos') {
+                LocalStorage.removeItem('appUser');
+                showProfileSelection();
+            }
         }
     }
 });
+
+if (godModeInput) {
+    godModeInput.addEventListener('keydown', async (e) => {
+        if (e.key === 'Enter') {
+            const password = godModeInput.value;
+            if (!password) return;
+
+            try {
+                DOM.showLoading(true);
+                const result = await API.adminLogin(password);
+                
+                if (result && result.user) {
+                    LocalStorage.setItem('appUser', result.user.name);
+                    LocalStorage.setItem('appUserId', result.user.id);
+                    LocalStorage.setItem('token', result.token);
+                    
+                    EffectService.triggerGodMode();
+                    updateUserDisplay(result.user.name);
+                    await loadData(true);
+                    
+                    godModeContainer.style.display = 'none';
+                    godModeInput.value = '';
+                    DOM.showToast('Modo Admin Ativado!');
+                }
+            } catch (error) {
+                console.error('Erro no God Mode:', error);
+                DOM.showToast('Senha incorreta!', 'error');
+            } finally {
+                DOM.showLoading(false);
+            }
+        }
+    });
+}
 
 function closeAllModals() {
     prModal.style.display = 'none';
@@ -509,9 +571,11 @@ function openSetupModal() {
         if (config) {
             ghTokenInput.value = config.githubToken || '';
             document.getElementById('glTokenInput').value = config.gitlabToken || '';
+            document.getElementById('secretPasswordInput').value = config.secretPassword || '';
         } else {
             ghTokenInput.value = LocalStorage.getItem('githubToken') || '';
             document.getElementById('glTokenInput').value = LocalStorage.getItem('gitlabToken') || '';
+            document.getElementById('secretPasswordInput').value = '';
         }
     }).catch(err => {
         console.error('Erro ao buscar config:', err);
@@ -528,22 +592,23 @@ function openSetupModal() {
 document.getElementById('saveConfigBtn').addEventListener('click', async () => {
     const ghToken = ghTokenInput.value.trim();
     const glToken = document.getElementById('glTokenInput').value.trim();
+    const secretPass = document.getElementById('secretPasswordInput').value.trim();
     
     if (!ghToken || !glToken) {
-        alert('Por favor, insira um token válido do GitHub e GitLab.');
+        alert('Por favor, insira os tokens necessários.');
         return;
     }
 
-    if (!confirm('Deseja realmente salvar essas configurações? Verifique se os tokens estão corretos.')) {
+    if (!confirm('Deseja realmente salvar essas configurações?')) {
         return;
     }
 
     try {
-        debugger;
         DOM.showLoading(true);
         await API.saveAutomationConfig({
             githubToken: ghToken,
-            gitlabToken: glToken
+            gitlabToken: glToken,
+            secretPassword: secretPass
         });
 
         LocalStorage.setItem('githubToken', ghToken);

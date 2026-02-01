@@ -29,7 +29,8 @@ public class AutomationConfigService : IAutomationConfigService
         return new AutomationConfigDto
         {
             GithubToken = config.GithubToken,
-            GitlabToken = config.GitlabToken
+            GitlabToken = config.GitlabToken,
+            SecretPassword = config.SecretPassword
         };
     }
     
@@ -45,6 +46,7 @@ public class AutomationConfigService : IAutomationConfigService
         
         config.GithubToken = dto.GithubToken;
         config.GitlabToken = dto.GitlabToken;
+        config.SecretPassword = dto.SecretPassword;
         config.UpdatedAt = DateTime.UtcNow;
         
         await _context.SaveChangesAsync();

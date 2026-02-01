@@ -447,4 +447,29 @@ async function saveAutomationConfig(configData) {
     }
 }
 
-export { fetchPRs, fetchSprints, fetchUsers, createPR, updatePR, requestCorrection, markPrFixed, approvePR, requestVersionBatch, saveVersionBatch, fetchBatches, fetchBatchById, releaseBatchToStaging, completeSprint, createSprint, updateBatch, savePRs, getAutomationConfig, saveAutomationConfig };
+async function adminLogin(password) {
+    const url = `${ApiConstants.BASE_URL}/Auth/admin-login`;
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify({ password })
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.json();
+            throw new Error(`Acesso negado: ${errorBody.message || response.statusText}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Falha no Admin Login:', error);
+        throw error;
+    }
+}
+
+export { fetchPRs, fetchSprints, fetchUsers, createPR, updatePR, requestCorrection, markPrFixed, approvePR, requestVersionBatch, saveVersionBatch, fetchBatches, fetchBatchById, releaseBatchToStaging, completeSprint, createSprint, updateBatch, savePRs, getAutomationConfig, saveAutomationConfig, adminLogin };

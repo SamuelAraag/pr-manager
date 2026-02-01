@@ -6,6 +6,11 @@ public class LoginDto
     public string Password { get; set; } = string.Empty;
 }
 
+public class AdminModeLoginDto
+{
+    public string Password { get; set; } = string.Empty;
+}
+
 public class LoginResponseDto
 {
     public string Token { get; set; } = string.Empty;

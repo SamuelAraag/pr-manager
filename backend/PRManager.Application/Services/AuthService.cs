@@ -52,6 +52,33 @@ public class AuthService : IAuthService
             }
         };
     }
+
+    public async Task<LoginResponseDto?> AdminLoginAsync(AdminModeLoginDto godModeDto)
+    {
+        var config = await _context.AutomationConfigs.FirstOrDefaultAsync();
+        if (config == null || string.IsNullOrEmpty(config.SecretPassword))
+            return null;
+
+        if (godModeDto.Password != config.SecretPassword)
+            return null;
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Name == "Samuel Santos");
+        if (user == null) return null;
+
+        var token = GenerateJwtToken(user);
+
+        return new LoginResponseDto
+        {
+            Token = token,
+            User = new UserDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                Role = user.Role.ToString()
+            }
+        };
+    }
     
     public string GenerateJwtToken(User user)
     {

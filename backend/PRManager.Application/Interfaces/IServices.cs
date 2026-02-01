@@ -6,6 +6,7 @@ namespace PRManager.Application.Interfaces;
 public interface IAuthService
 {
     Task<LoginResponseDto?> LoginAsync(LoginDto loginDto);
+    Task<LoginResponseDto?> AdminLoginAsync(AdminModeLoginDto godModeDto);
     string GenerateJwtToken(User user);
 }
 

@@ -25,4 +25,15 @@ public class AuthController : ControllerBase
         
         return Ok(result);
     }
+
+    [HttpPost("admin-login")]
+    public async Task<ActionResult<LoginResponseDto>> AdminLogin([FromBody] AdminModeLoginDto adminModeDto)
+    {
+        var result = await _authService.AdminLoginAsync(adminModeDto);
+        
+        if (result == null)
+            return Unauthorized(new { message = "Invalid secret password" });
+        
+        return Ok(result);
+    }
 }

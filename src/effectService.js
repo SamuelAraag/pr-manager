@@ -249,6 +249,63 @@ const EffectService = {
             document.body.classList.remove('god-mode-active');
             style.remove();
         }, 800);
+    },
+    
+    triggerScanLine() {
+        if (document.getElementById('scan-line-style')) return;
+
+        const style = document.createElement('style');
+        style.id = 'scan-line-style';
+        style.innerHTML = `
+            @keyframes scanLine {
+                0% { top: -10%; opacity: 0; }
+                10% { opacity: 1; }
+                90% { opacity: 1; }
+                100% { top: 110%; opacity: 0; }
+            }
+            
+            @keyframes scanFade {
+                0% { background: rgba(142, 68, 173, 0); }
+                50% { background: rgba(142, 68, 173, 0.05); }
+                100% { background: rgba(142, 68, 173, 0); }
+            }
+
+            .scan-line-element {
+                position: fixed;
+                left: 0;
+                width: 100%;
+                height: 5px;
+                background: linear-gradient(to bottom, transparent, #8e44ad, transparent);
+                box-shadow: 0 0 15px rgba(142, 68, 173, 0.8), 0 0 30px rgba(142, 68, 173, 0.4);
+                z-index: 10000;
+                pointer-events: none;
+                animation: scanLine 1.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+            }
+
+            .scan-screen-flash {
+                position: fixed;
+                inset: 0;
+                z-index: 9999;
+                pointer-events: none;
+                animation: scanFade 1.5s ease-in-out forwards;
+            }
+        `;
+        document.head.appendChild(style);
+
+        const line = document.createElement('div');
+        line.className = 'scan-line-element';
+        
+        const flash = document.createElement('div');
+        flash.className = 'scan-screen-flash';
+
+        document.body.appendChild(line);
+        document.body.appendChild(flash);
+
+        setTimeout(() => {
+            line.remove();
+            flash.remove();
+            style.remove();
+        }, 1600);
     }
 };
 
