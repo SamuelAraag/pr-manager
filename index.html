@@ -289,11 +289,9 @@
             </div>
         </div>
     </div>
-    <!-- God Mode Hidden Input -->
-    <div id="godModeContainer"
-        style="display: none; position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: var(--bg-card); padding: 10px; border-radius: 8px; border: 1px solid var(--accent-color); box-shadow: 0 0 15px var(--accent-glow);">
-        <input type="password" id="godModeInput" placeholder="Secret Key..."
-            style="background: #0d1117; border: 1px solid #30363d; color: white; padding: 5px 10px; border-radius: 4px; outline: none;">
+    <!-- God Mode Hidden Input (Truly secret) -->
+    <div id="godModeContainer" style="position: fixed; top: -100px; left: -100px; opacity: 0; pointer-events: none;">
+        <input type="password" id="godModeInput">
     </div>
 </body>
 

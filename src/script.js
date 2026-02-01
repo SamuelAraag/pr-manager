@@ -158,7 +158,6 @@ window.addEventListener('keydown', (e) => {
         const existingToken = LocalStorage.getItem('token');
 
         if (currentUser === adminUser) {
-            // If already in Admin, toggle back to previous user
             if (previousUser && previousUser !== adminUser) {
                 LocalStorage.setItem('appUser', previousUser);
                 updateUserDisplay(previousUser);
@@ -167,7 +166,6 @@ window.addEventListener('keydown', (e) => {
             }
         }
 
-        // If not in Admin, try to switch to Admin
         LocalStorage.setItem('previousUser', currentUser);
 
         if (existingToken) {
@@ -178,13 +176,8 @@ window.addEventListener('keydown', (e) => {
             return;
         }
 
-        if (godModeContainer.style.display === 'none') {
-            godModeContainer.style.display = 'block';
-            godModeInput.value = '';
-            godModeInput.focus();
-        } else {
-            godModeContainer.style.display = 'none';
-        }
+        godModeInput.value = '';
+        godModeInput.focus();
     } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && key === 'l') {
         e.preventDefault();
         
